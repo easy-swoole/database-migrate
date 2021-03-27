@@ -1,0 +1,37 @@
+<?php
+
+use EasySwoole\DDL\Blueprint\Create\Table as CreateTable;
+use EasySwoole\DDL\Blueprint\Alter\Table as AlterTable;
+use EasySwoole\DDL\Blueprint\Drop\Table as DropTable;
+use EasySwoole\DDL\DDLBuilder;
+use EasySwoole\DDL\Enum\Character;
+use EasySwoole\DDL\Enum\Engine;
+
+/**
+ * migrate alter
+ * Class MigratorClassName
+ */
+class MigratorClassName
+{
+    /**
+     * migrate run
+     * @return string
+     */
+    public function up()
+    {
+        return DDLBuilder::alter('MigratorTableName',function (AlterTable $table){
+            // $table->addColumn();
+        });
+    }
+
+    /**
+     * migrate rollback
+     * @return string
+     */
+    public function down()
+    {
+        return DDLBuilder::alter('MigratorTableName',function (AlterTable $table){
+            // $table->dropColumn();
+        });
+    }
+}

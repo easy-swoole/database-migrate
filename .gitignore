@@ -1,0 +1,10 @@
+\#*
+.\#*
+.*
+!.gitignore
+*.swp
+*~
+*.swo
+$.swn
+vendor/
+composer.lock

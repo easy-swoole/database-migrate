@@ -1,0 +1,33 @@
+<?php
+
+use EasySwoole\DDL\Blueprint\Create\Table as CreateTable;
+use EasySwoole\DDL\DDLBuilder;
+use EasySwoole\DDL\Enum\Character;
+use EasySwoole\DDL\Enum\Engine;
+
+/**
+ * migrate create
+ * Class MigratorClassName
+ */
+class MigratorClassName
+{
+    /**
+     * migrate run
+     * @return string
+     */
+    public function up()
+    {
+        return DDLBuilder::create('MigratorTableName', function (CreateTable $table) {
+            DDLSyntax
+        });
+    }
+
+    /**
+     * migrate rollback
+     * @return string
+     */
+    public function down()
+    {
+        return DDLBuilder::dropIfExists('MigratorTableName');
+    }
+}

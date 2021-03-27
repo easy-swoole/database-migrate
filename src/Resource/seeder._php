@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * filling data
+ *
+ * Class SeederClassName
+ */
+class SeederClassName
+{
+    /**
+     * seeder run
+     * @return void
+     */
+    public function run()
+    {
+        //todo::connection databases and insert data
+    }
+}
