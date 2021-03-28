@@ -1,5 +1,5 @@
 {
-    "name": "easyswoole/dbmigrate",
+    "name": "easyswoole/db-migrate",
     "type": "library",
     "description": "An efficient swoole framework",
     "keywords": [
