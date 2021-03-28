@@ -1,0 +1,38 @@
+{
+    "name": "easyswoole/dbmigrate",
+    "type": "library",
+    "description": "An efficient swoole framework",
+    "keywords": [
+        "swoole",
+        "framework",
+        "easyswoole",
+        "database",
+        "migrate"
+    ],
+    "homepage": "https://www.easyswoole.com/",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Heelie",
+            "email": "heelie.hj@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0",
+        "easyswoole/spl": "^1.0",
+        "easyswoole/ddl": "^1.0",
+        "easyswoole/command": "^1.1",
+        "easyswoole/component": "^2.0",
+        "easyswoole/utility": "^1.0",
+        "ext-mysqli": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "EasySwoole\\DatabaseMigrate\\": "src/",
+            "EasySwoole\\DatabaseMigrate\\Tests\\": "tests"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.4"
+    }
+}
