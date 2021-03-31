@@ -5,7 +5,8 @@ namespace EasySwoole\DatabaseMigrate\Command;
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\Color;
 use EasySwoole\Command\CommandManager;
-use EasySwoole\DatabaseMigrate\Databases\Client;
+use EasySwoole\DatabaseMigrate\Database\Config;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DDL\Blueprint\Create\Table as CreateTable;
 use EasySwoole\DDL\DDLBuilder;
 use EasySwoole\DDL\Enum\Character;
@@ -18,7 +19,7 @@ use EasySwoole\DatabaseMigrate\Command\Migrate\RollbackCommand;
 use EasySwoole\DatabaseMigrate\Command\Migrate\RunCommand;
 use EasySwoole\DatabaseMigrate\Command\Migrate\SeedCommand;
 use EasySwoole\DatabaseMigrate\Command\Migrate\StatusCommand;
-use EasySwoole\DatabaseMigrate\Config\Config;
+use Swoole\Coroutine\Scheduler;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
@@ -33,17 +34,14 @@ use Throwable;
  */
 class MigrateCommand extends CommandAbstract
 {
-    /** @var \EasySwoole\Mysqli\Client */
-    protected $dbClient;
-
     private $command = [
-        'create'   => CreateCommand::class,
+        'create' => CreateCommand::class,
         'generate' => GenerateCommand::class,
-        'reset'    => ResetCommand::class,
+        'reset' => ResetCommand::class,
         'rollback' => RollbackCommand::class,
-        'run'      => RunCommand::class,
-        'seed'     => SeedCommand::class,
-        'status'   => StatusCommand::class,
+        'run' => RunCommand::class,
+        'seed' => SeedCommand::class,
+        'status' => StatusCommand::class,
     ];
 
     public function commandName(): string
@@ -97,13 +95,18 @@ class MigrateCommand extends CommandAbstract
 
     public function exec(): ?string
     {
-        try {
-            $this->check();
-            return $this->callOptionMethod($this->getArg(0), __FUNCTION__);
-        } catch (Throwable $throwable) {
-            return Color::error($throwable->getMessage()) . "\n" .
-                CommandManager::getInstance()->displayCommandHelp('migrate');
-        }
+        $scheduler = new Scheduler();
+        $scheduler->add(function () use (&$ret) {
+            try {
+                $this->checkDefaultMigrateTable();
+                $ret = $this->callOptionMethod($this->getArg(0), 'exec');
+            } catch (Throwable $throwable) {
+                $ret = Color::error($throwable->getMessage()) . "\n" .
+                    CommandManager::getInstance()->displayCommandHelp('migrate');
+            }
+        });
+        $scheduler->start();
+        return $ret ?? null;
     }
 
     /**
@@ -122,31 +125,13 @@ class MigrateCommand extends CommandAbstract
         return call_user_func([$ref->newInstance(), $method], ...$args);
     }
 
-    private function check()
-    {
-        $this->dbClient = Client::getInstance()->getClient();
-        $this->checkDefaultMigrateTable();
-    }
-
     private function checkDefaultMigrateTable()
     {
-        $config = Client::getInstance()->getConfig();
-        $client = new \EasySwoole\Mysqli\Client($config);
-        $client->queryBuilder()->raw("select 1;");
-        $client->execBuilder();
+        $client = MigrateManager::getInstance()->getClient();
+        $client->queryBuilder()->raw('SHOW TABLES LIKE \'' . Config::DEFAULT_MIGRATE_TABLE . '\'');
+        $tableExists = $client->execBuilder();
 
-        // $this->dbClient->queryBuilder()->raw('SHOW TABLES LIKE \'' . Config::DEFAULT_MIGRATE_TABLE . '\'');
-        $this->dbClient->queryBuilder()->raw('select 1');
-        $tableExists = $this->dbClient->execBuilder();
-
-        // $config = Client::getInstance()->getConfig();
-        // $mysql = new \mysqli($config->getHost(),$config->getUser(),$config->getPassword(),$config->getDatabase(),$config->getPort());
-        // $result = $mysql->query('SHOW TABLES LIKE "' . Config::DEFAULT_MIGRATE_TABLE . '"');
-
-
-        if (empty($tableExists)) {
-            $this->createDefaultMigrateTable();
-        }
+        empty($tableExists) && $this->createDefaultMigrateTable();
     }
 
     private function createDefaultMigrateTable()
@@ -160,8 +145,10 @@ class MigrateCommand extends CommandAbstract
             $table->int('batch', 10)->setIsNotNull();
             $table->normal('ind_batch', 'batch');
         });
-        $this->dbClient->queryBuilder()->raw($sql);
-        if ($this->dbClient->execBuilder() === false) {
+
+        $client = MigrateManager::getInstance()->getClient();
+        $client->queryBuilder()->raw($sql);
+        if ($client->execBuilder() === false) {
             throw new RuntimeException('Create default migrate table fail.' . PHP_EOL . ' SQL: ' . $sql);
         }
     }

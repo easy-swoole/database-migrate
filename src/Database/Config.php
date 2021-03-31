@@ -1,8 +1,10 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Config;
+namespace EasySwoole\DatabaseMigrate\Database;
 
-class Config extends \EasySwoole\Mysqli\Config
+use EasySwoole\Mysqli\Config as MysqliConfig;
+
+class Config extends MysqliConfig
 {
     /** @var string default migrate table name */
     const DEFAULT_MIGRATE_TABLE = 'migrations';
