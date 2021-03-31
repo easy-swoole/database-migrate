@@ -5,6 +5,7 @@ namespace EasySwoole\DatabaseMigrate\Command;
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\Color;
 use EasySwoole\Command\CommandManager;
+use EasySwoole\DatabaseMigrate\Databases\Client;
 use EasySwoole\DDL\Blueprint\Create\Table as CreateTable;
 use EasySwoole\DDL\DDLBuilder;
 use EasySwoole\DDL\Enum\Character;
@@ -18,7 +19,6 @@ use EasySwoole\DatabaseMigrate\Command\Migrate\RunCommand;
 use EasySwoole\DatabaseMigrate\Command\Migrate\SeedCommand;
 use EasySwoole\DatabaseMigrate\Command\Migrate\StatusCommand;
 use EasySwoole\DatabaseMigrate\Config\Config;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
@@ -33,8 +33,8 @@ use Throwable;
  */
 class MigrateCommand extends CommandAbstract
 {
-    /** @var DatabaseFacade */
-    protected $dbFacade;
+    /** @var \EasySwoole\Mysqli\Client */
+    protected $dbClient;
 
     private $command = [
         'create'   => CreateCommand::class,
@@ -124,13 +124,26 @@ class MigrateCommand extends CommandAbstract
 
     private function check()
     {
-        $this->dbFacade = DatabaseFacade::getInstance();
+        $this->dbClient = Client::getInstance()->getClient();
         $this->checkDefaultMigrateTable();
     }
 
     private function checkDefaultMigrateTable()
     {
-        $tableExists = $this->dbFacade->query('SHOW TABLES LIKE "' . Config::DEFAULT_MIGRATE_TABLE . '"');
+        $config = Client::getInstance()->getConfig();
+        $client = new \EasySwoole\Mysqli\Client($config);
+        $client->queryBuilder()->raw("select 1;");
+        $client->execBuilder();
+
+        // $this->dbClient->queryBuilder()->raw('SHOW TABLES LIKE \'' . Config::DEFAULT_MIGRATE_TABLE . '\'');
+        $this->dbClient->queryBuilder()->raw('select 1');
+        $tableExists = $this->dbClient->execBuilder();
+
+        // $config = Client::getInstance()->getConfig();
+        // $mysql = new \mysqli($config->getHost(),$config->getUser(),$config->getPassword(),$config->getDatabase(),$config->getPort());
+        // $result = $mysql->query('SHOW TABLES LIKE "' . Config::DEFAULT_MIGRATE_TABLE . '"');
+
+
         if (empty($tableExists)) {
             $this->createDefaultMigrateTable();
         }
@@ -147,7 +160,8 @@ class MigrateCommand extends CommandAbstract
             $table->int('batch', 10)->setIsNotNull();
             $table->normal('ind_batch', 'batch');
         });
-        if ($this->dbFacade->query($sql) === false) {
+        $this->dbClient->queryBuilder()->raw($sql);
+        if ($this->dbClient->execBuilder() === false) {
             throw new RuntimeException('Create default migrate table fail.' . PHP_EOL . ' SQL: ' . $sql);
         }
     }
