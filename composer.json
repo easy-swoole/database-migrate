@@ -24,7 +24,7 @@
         "easyswoole/command": "^1.1",
         "easyswoole/component": "^2.0",
         "easyswoole/utility": "^1.0",
-        "ext-mysqli": "*"
+        "easyswoole/mysqli": "^2.2"
     },
     "autoload": {
         "psr-4": {
