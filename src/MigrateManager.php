@@ -3,7 +3,7 @@
 namespace EasySwoole\DatabaseMigrate;
 
 use EasySwoole\Component\Singleton;
-use EasySwoole\DatabaseMigrate\Database\Config;
+use EasySwoole\DatabaseMigrate\Config\Config;
 use EasySwoole\Mysqli\Client;
 
 class MigrateManager
@@ -37,11 +37,9 @@ class MigrateManager
      */
     public function getClient(): Client
     {
-
         if (!$this->client instanceof Client) {
             $this->client = new Client($this->config);
         }
-
         return $this->client;
     }
 }

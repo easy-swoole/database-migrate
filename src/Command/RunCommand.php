@@ -1,6 +1,6 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Command\Migrate;
+namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\AbstractInterface\CommandInterface;
@@ -10,9 +10,8 @@ use EasySwoole\DDL\DDLBuilder;
 use EasySwoole\DDL\Enum\Character;
 use EasySwoole\DDL\Enum\Engine;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\Command\MigrateCommand;
-use EasySwoole\DatabaseMigrate\Config\Config;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\MigrateCommand;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 use EasySwoole\Spl\SplArray;
 use RuntimeException;
@@ -25,11 +24,11 @@ use RuntimeException;
  */
 final class RunCommand extends CommandAbstract
 {
-    private $dbFacade;
+    private $dbClient;
 
     public function __construct()
     {
-        $this->dbFacade = DatabaseFacade::getInstance();
+        $this->dbClient = MigrateManager::getInstance()->getClient();
     }
 
     public function commandName(): string
@@ -60,6 +59,8 @@ final class RunCommand extends CommandAbstract
 
         $outMsg  = [];
         $batchNo = $this->getBatchNo();
+        $client  = MigrateManager::getInstance()->getClient();
+        $config  = MigrateManager::getInstance()->getConfig();
         foreach ($waitMigrationFiles as $file) {
             $outMsg[]  = "<brown>Migrating: </brown>{$file}";
             $startTime = microtime(true);
@@ -67,9 +68,11 @@ final class RunCommand extends CommandAbstract
             try {
                 $ref = new \ReflectionClass($className);
                 $sql = call_user_func([$ref->newInstance(), 'up']);
-                if ($this->dbFacade->query($sql)) {
-                    $noteSql = 'insert into ' . Config::DEFAULT_MIGRATE_TABLE . ' (`migration`,`batch`) VALUE (\'' . $file . '\',\'' . $batchNo . '\')';
-                    $this->dbFacade->query($noteSql);
+                $client->queryBuilder()->raw($sql);
+                if ($client->execBuilder()) {
+                    $noteSql = 'INSERT INTO ' . $config->getMigrateTable() . ' (`migration`,`batch`) VALUE (\'' . $file . '\',\'' . $batchNo . '\')';
+                    $client->queryBuilder()->raw($noteSql);
+                    $client->execBuilder();
                 }
             } catch (\Throwable $e) {
                 return Color::error($e->getMessage());
@@ -87,7 +90,10 @@ final class RunCommand extends CommandAbstract
         foreach ($allMigrationFiles as $key => $file) {
             $allMigrationFiles[$key] = basename($file, '.php');
         }
-        $alreadyMigrationFiles = $this->dbFacade->query('select `migration` from ' . Config::DEFAULT_MIGRATE_TABLE . ' order by batch asc,migration asc');
+        $client = MigrateManager::getInstance()->getClient();
+        $config = MigrateManager::getInstance()->getConfig();
+        $client->queryBuilder()->raw('SELECT `migration` FROM ' . $config->getMigrateTable() . ' ORDER BY batch ASC,migration ASC');
+        $alreadyMigrationFiles = $client->execBuilder();
         $alreadyMigrationFiles = array_column($alreadyMigrationFiles, 'migration');
 
         foreach ($allMigrationFiles as $key => $file) {
@@ -104,7 +110,10 @@ final class RunCommand extends CommandAbstract
      */
     public function getBatchNo()
     {
-        $maxResult = $this->dbFacade->query('select max(`batch`) as max_batch from ' . Config::DEFAULT_MIGRATE_TABLE);
+        $client = MigrateManager::getInstance()->getClient();
+        $config = MigrateManager::getInstance()->getConfig();
+        $client->queryBuilder()->raw('select max(`batch`) as max_batch from ' . $config->getMigrateTable());
+        $maxResult = $client->execBuilder();
         return intval($maxResult[0]['max_batch']) + 1;
     }
 

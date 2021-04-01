@@ -1,14 +1,13 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Command\Migrate;
+namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\AbstractInterface\CommandInterface;
 use EasySwoole\Command\Color;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\Command\MigrateCommand;
-use EasySwoole\DatabaseMigrate\Config\Config;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\MigrateCommand;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\DDLSyntax\DDLColumnSyntax;
 use EasySwoole\DatabaseMigrate\DDLSyntax\DDLForeignSyntax;
 use EasySwoole\DatabaseMigrate\DDLSyntax\DDLIndexSyntax;
@@ -82,17 +81,16 @@ final class GenerateCommand extends CommandAbstract
 
     private function generate($tableName, $batchNo, &$outMsg)
     {
+        $config = MigrateManager::getInstance()->getConfig();
         $migrateClassName = 'Create' . ucfirst(Util::lineConvertHump($tableName));
         $migrateFileName  = Util::genMigrateFileName($migrateClassName);
-        $migrateFilePath  = Config::MIGRATE_PATH . $migrateFileName;
+        $migrateFilePath  = $config->getMigratePath() . $migrateFileName;
 
         $fileName  = basename($migrateFileName, '.php');
         $outMsg[]  = "<brown>Generating: </brown>{$fileName}";
         $startTime = microtime(true);
 
-        // $defaultSqlDrive = DatabaseFacade::getInstance()->getConfig()->get('default');
-        // $tableSchema     = DatabaseFacade::getInstance()->getConfig()->get($defaultSqlDrive . '.dbname');
-        $tableSchema     = DatabaseFacade::getInstance()->getConfig()->get('database');
+        $tableSchema     = MigrateManager::getInstance()->getConfig()->getDatabase();
         $createTableDDl  = str_replace(PHP_EOL,
             str_pad(PHP_EOL, strlen(PHP_EOL) + 12, ' ', STR_PAD_RIGHT),
             join(PHP_EOL, array_filter([
@@ -110,22 +108,24 @@ final class GenerateCommand extends CommandAbstract
 
         $contents = str_replace(
             [
-                Config::MIGRATE_TEMPLATE_CLASS_NAME,
-                Config::MIGRATE_TEMPLATE_TABLE_NAME,
-                Config::MIGRATE_TEMPLATE_DDL_SYNTAX
+                $config->getMigrateTemplateClassName(),
+                $config->getMigrateTemplateTableName(),
+                $config->getMigrateTemplateDdlSyntax()
             ],
             [
                 $migrateClassName,
                 $tableName,
                 $createTableDDl
             ],
-            file_get_contents(Config::MIGRATE_GENERATE_TEMPLATE)
+            file_get_contents($config->getMigrateGenerateTemplate())
         );
         if (file_put_contents($migrateFilePath, $contents) === false) {
             throw new Exception(sprintf('Migration file "%s" is not writable', $migrateFilePath));
         }
-        $noteSql = 'insert into ' . Config::DEFAULT_MIGRATE_TABLE . ' (`migration`,`batch`) VALUE (\'' . $fileName . '\',\'' . $batchNo . '\')';
-        DatabaseFacade::getInstance()->query($noteSql);
+        $noteSql = 'INSERT INTO ' . $config->getMigrateTable() . ' (`migration`,`batch`) VALUE (\'' . $fileName . '\',\'' . $batchNo . '\')';
+        $client = MigrateManager::getInstance()->getClient();
+        $client->queryBuilder()->raw($noteSql);
+        $client->execBuilder();
         $outMsg[] = "<green>Generated:  </green>{$fileName} (" . round(microtime(true) - $startTime, 2) . " seconds)";
     }
 
@@ -136,7 +136,9 @@ final class GenerateCommand extends CommandAbstract
      */
     protected function getExistsTables()
     {
-        $result = DatabaseFacade::getInstance()->query('SHOW TABLES;');
+        $client = MigrateManager::getInstance()->getClient();
+        $client->queryBuilder()->raw('SHOW TABLES;');
+        $result = $client->execBuilder();
         if (empty($result)) {
             throw new RuntimeException('No table found.');
         }
@@ -150,7 +152,8 @@ final class GenerateCommand extends CommandAbstract
      */
     protected function getIgnoreTables()
     {
-        $ignoreTables = [Config::DEFAULT_MIGRATE_TABLE];
+        $config = MigrateManager::getInstance()->getConfig();
+        $ignoreTables = [$config->getMigrateTable()];
         if ($ignore = $this->getOpt(['i', 'ignore'])) {
             return array_merge($ignoreTables, explode(',', $ignore));
         }

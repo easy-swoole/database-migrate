@@ -1,13 +1,12 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Command\Migrate;
+namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\AbstractInterface\ResultInterface;
 use EasySwoole\Command\Color;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\Config\Config;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 use EasySwoole\DatabaseMigrate\Validate\Validator;
 use EasySwoole\Utility\File;
@@ -42,6 +41,7 @@ final class StatusCommand extends CommandAbstract
     /**
      * @return string|null
      * @throws Exception
+     * @throws \Throwable
      */
     public function exec(): ?string
     {
@@ -77,10 +77,15 @@ final class StatusCommand extends CommandAbstract
 
     /**
      * @return array|void
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
     private function getAllMigrateInfo()
     {
-        return DatabaseFacade::getInstance()->query('SELECT * FROM ' . Config::DEFAULT_MIGRATE_TABLE);
+        $client = MigrateManager::getInstance()->getClient();
+        $config = MigrateManager::getInstance()->getConfig();
+        $client->queryBuilder()->raw('SELECT * FROM ' . $config->getMigrateTable());
+        return $client->execBuilder();
     }
 
     public function checkLenFunc()

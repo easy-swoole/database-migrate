@@ -1,9 +1,17 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Database;
+namespace EasySwoole\DatabaseMigrate\Config;
 
 use EasySwoole\Mysqli\Config as MysqliConfig;
 
+/**
+ * 包含迁移会用到的所有配置化信息
+ *
+ * Class Config
+ * @package EasySwoole\DatabaseMigrate\Config
+ * @author heelie.hj@gmail.com
+ * @date 2021-03-31 18:12:56
+ */
 class Config extends MysqliConfig
 {
     /** @var string default migrate table name */
