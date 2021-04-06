@@ -7,7 +7,6 @@ use EasySwoole\Command\CommandManager;
 use EasySwoole\DatabaseMigrate\MigrateCommand;
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
-use EasySwoole\Spl\SplArray;
 use PHPUnit\Framework\TestCase;
 
 class SeedCommandTest extends TestCase

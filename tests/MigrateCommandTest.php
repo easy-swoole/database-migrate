@@ -8,10 +8,14 @@ use EasySwoole\DatabaseMigrate\MigrateCommand;
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 use PHPUnit\Framework\TestCase;
+use Swoole\Coroutine;
+use Swoole\Timer;
+use function Swoole\Coroutine\run;
 
 class MigrateCommandTest extends TestCase
 {
     private $client;
+
     public function setUp(): void
     {
         defined("EASYSWOOLE_ROOT") or define("EASYSWOOLE_ROOT", dirname(__DIR__) . '/tests');
@@ -52,7 +56,7 @@ class MigrateCommandTest extends TestCase
     public function testCreateCommand()
     {
         $tableName = "User";
-        $caller = new Caller();
+        $caller    = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
         $caller->setParams([
@@ -71,13 +75,26 @@ class MigrateCommandTest extends TestCase
     public function testGenerateCommand()
     {
         $tableName = "gen_test";
-        $this->client->queryBuilder()->raw("
-        CREATE TABLE `{$tableName}` (
-          `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-          `name` varchar(255) DEFAULT NULL,
-          PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-        $this->client->execBuilder();
+
+        $closure = function () use ($tableName) {
+            $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
+            if (!$this->client->execBuilder()) {
+                $this->client->queryBuilder()->raw("
+                CREATE TABLE `{$tableName}` (
+                  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                  `name` varchar(255) DEFAULT NULL,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $this->client->execBuilder();
+            }
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+
         $caller = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
@@ -97,7 +114,7 @@ class MigrateCommandTest extends TestCase
     public function testResetCommand()
     {
         $tableName = "gen_test";
-        $caller = new Caller();
+        $caller    = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
         $caller->setParams([
@@ -108,15 +125,26 @@ class MigrateCommandTest extends TestCase
         // $this->unlinkAllMigrateFiles();
         $this->initCommandManager();
         CommandManager::getInstance()->run($caller);
-        $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
-        $result = $this->client->execBuilder();
+
+        $result  = "";
+        $closure = function () use ($tableName, &$result) {
+            $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
+            $result = $this->client->execBuilder();
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+
         $this->assertEquals([], $result);
     }
 
     public function testRunCommand()
     {
         $tableName = "gen_test";
-        $caller = new Caller();
+        $caller    = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
         $caller->setParams([
@@ -126,15 +154,26 @@ class MigrateCommandTest extends TestCase
         ]);
         $this->initCommandManager();
         CommandManager::getInstance()->run($caller);
-        $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
-        $result = $this->client->execBuilder();
+
+        $result  = "";
+        $closure = function () use ($tableName, &$result) {
+            $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
+            $result = $this->client->execBuilder();
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+
         $this->assertGreaterThan(0, sizeof($result));
     }
 
     public function testRollbackCommand()
     {
         $tableName = "gen_test";
-        $caller = new Caller();
+        $caller    = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
         $caller->setParams([
@@ -144,8 +183,19 @@ class MigrateCommandTest extends TestCase
         ]);
         $this->initCommandManager();
         CommandManager::getInstance()->run($caller);
-        $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
-        $result = $this->client->execBuilder();
+
+        $result  = "";
+        $closure = function () use ($tableName, &$result) {
+            $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
+            $result = $this->client->execBuilder();
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+
         $this->assertEquals([], $result);
     }
 

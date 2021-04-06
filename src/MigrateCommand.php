@@ -17,12 +17,15 @@ use EasySwoole\DatabaseMigrate\Command\RollbackCommand;
 use EasySwoole\DatabaseMigrate\Command\RunCommand;
 use EasySwoole\DatabaseMigrate\Command\SeedCommand;
 use EasySwoole\DatabaseMigrate\Command\StatusCommand;
+use Swoole\Coroutine;
 use Swoole\Coroutine\Scheduler;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
+use Swoole\Timer;
 use Throwable;
+use function Swoole\Coroutine\run;
 
 /**
  * Class MigrateCommand
@@ -93,8 +96,7 @@ class MigrateCommand extends CommandAbstract
 
     public function exec(): ?string
     {
-        $scheduler = new Scheduler();
-        $scheduler->add(function () use (&$result) {
+        $closure = function () use (&$result) {
             try {
                 $this->checkDefaultMigrateTable();
                 $result = $this->callOptionMethod($this->getArg(0), "exec");
@@ -102,8 +104,13 @@ class MigrateCommand extends CommandAbstract
                 $result = Color::error($throwable->getMessage()) . "\n" .
                     CommandManager::getInstance()->displayCommandHelp('migrate');
             }
-        });
-        $scheduler->start();
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
         return $result ?? "";
     }
 
@@ -135,7 +142,7 @@ class MigrateCommand extends CommandAbstract
     private function createDefaultMigrateTable()
     {
         $config = MigrateManager::getInstance()->getConfig();
-        $sql = DDLBuilder::create($config->getMigrateTable(), function (CreateTable $table) {
+        $sql    = DDLBuilder::create($config->getMigrateTable(), function (CreateTable $table) {
             $table->setIfNotExists()->setTableAutoIncrement(1);
             $table->setTableEngine(Engine::INNODB);
             $table->setTableCharset(Character::UTF8MB4_GENERAL_CI);
