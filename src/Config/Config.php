@@ -15,57 +15,44 @@ use EasySwoole\Mysqli\Config as MysqliConfig;
 class Config extends MysqliConfig
 {
     /** @var string default migrate table name */
-    const DEFAULT_MIGRATE_TABLE = 'migrations';
     protected $migrate_table = "migrations";
 
     /** @var string migrate path */
-    const MIGRATE_PATH = EASYSWOOLE_ROOT . '/Database/Migrates/';
     protected $migrate_path = EASYSWOOLE_ROOT . '/Database/Migrates/';
 
     /** @var string migrate template file path */
-    const MIGRATE_TEMPLATE = __DIR__ . '/../Resource/migrate._php';
     protected $migrate_template = __DIR__ . '/../Resource/migrate._php';
 
     /** @var string migrate template class name */
-    const MIGRATE_TEMPLATE_CLASS_NAME = 'MigratorClassName';
     protected $migrate_template_class_name = 'MigratorClassName';
 
     /** @var string migrate template table name */
-    const MIGRATE_TEMPLATE_TABLE_NAME = 'MigratorTableName';
     protected $migrate_template_table_name = 'MigratorTableName';
 
     /** @var string create migrate template file path */
-    const MIGRATE_CREATE_TEMPLATE = __DIR__ . '/../Resource/migrate_create._php';
     protected $migrate_create_template = __DIR__ . '/../Resource/migrate_create._php';
 
     /** @var string alter migrate template file path */
-    const MIGRATE_ALTER_TEMPLATE = __DIR__ . '/../Resource/migrate_alter._php';
     protected $migrate_alter_template = __DIR__ . '/../Resource/migrate_alter._php';
 
     /** @var string drop migrate template file path */
-    const MIGRATE_DROP_TEMPLATE = __DIR__ . '/../Resource/migrate_drop._php';
     protected $migrate_drop_template = __DIR__ . '/../Resource/migrate_drop._php';
 
 
     /** @var string seeder path */
-    const SEEDER_PATH = EASYSWOOLE_ROOT . '/Database/Seeds/';
     protected $seeder_path = EASYSWOOLE_ROOT . '/Database/Seeds/';
 
     /** @var string seeder template class name */
-    const SEEDER_TEMPLATE_CLASS_NAME = 'SeederClassName';
     protected $seeder_template_class_name = 'SeederClassName';
 
     /** @var string seeder template file path */
-    const SEEDER_TEMPLATE = __DIR__ . '/../Resource/seeder._php';
     protected $seeder_template = __DIR__ . '/../Resource/seeder._php';
 
 
     /** @var string migrate template class name */
-    const MIGRATE_TEMPLATE_DDL_SYNTAX = 'DDLSyntax';
     protected $migrate_template_ddl_syntax = 'DDLSyntax';
 
     /** @var string generate migrate template file path */
-    const MIGRATE_GENERATE_TEMPLATE = __DIR__ . '/../Resource/migrate_generate._php';
     protected $migrate_generate_template = __DIR__ . '/../Resource/migrate_generate._php';
 
 
