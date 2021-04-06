@@ -4,34 +4,26 @@
 
 ## 使用方法
 
-在全局 `boostrap` 事件中注册 `MigrateCommand` 
+在全局 `boostrap` 事件中注册 `MigrateCommand` 并添加配置信息
 
 > bootstrap.php
 
 ```php
-\EasySwoole\Command\CommandManager::getInstance()->addCommand(new \EasySwoole\DatabaseMigrate\Command\MigrateCommand());
-```
-
-在dev中增加配置信息
-
-> dev.php
-
-```php
-return [
-    // ......
-    'MYSQL' => [
-        'host' => '127.0.0.1',
-        'port' => 3306,
-        'username' => 'root',
-        'password' => 'root',
-        'database' => 'easyswoole',
-    ]
-];
+\EasySwoole\Command\CommandManager::getInstance()->addCommand(new \EasySwoole\DatabaseMigrate\MigrateCommand());
+$config = new \EasySwoole\DatabaseMigrate\Config\Config();
+$config->setHost("127.0.0.1");
+$config->setPort(3306);
+$config->setUser("root");
+$config->setPassword("123456");
+$config->setDatabase("easyswoole");
+$config->setTimeout(5.0);
+$config->setCharset("utf8mb4");
+\EasySwoole\DatabaseMigrate\MigrateManager::getInstance($config);
 ```
 
 执行 `php easyswoole migrate -h`
 
-```shell
+```text
 php easyswoole migrate -h
 Database migrate tool
 
