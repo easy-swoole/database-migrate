@@ -2,8 +2,8 @@
 
 namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DDL\Blueprint\Create\Table;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 
 class DDLForeignSyntax
@@ -41,7 +41,9 @@ class DDLForeignSyntax
                 WHERE `TABLE_SCHEMA`='{$tableSchema}' 
                 AND `TABLE_NAME`='{$tableName}'
                 AND `REFERENCED_TABLE_SCHEMA`='{$tableSchema}';";
-        return DatabaseFacade::getInstance()->query($sql);
+        $client  = MigrateManager::getInstance()->getClient();
+        $client->queryBuilder()->raw($sql);
+        return $client->execBuilder();
     }
 
     /**
@@ -63,7 +65,9 @@ class DDLForeignSyntax
                 AND `CONSTRAINT_NAME`='{$constraintName}'
                 AND `TABLE_NAME`='{$tableName}'
                 AND `REFERENCED_TABLE_NAME`='{$referencedTableName}';";
-        return DatabaseFacade::getInstance()->query($sql);
+        $client  = MigrateManager::getInstance()->getClient();
+        $client->queryBuilder()->raw($sql);
+        return $client->execBuilder();
     }
 
     private static function genForeignDDLSyntax($indAttrs)

@@ -2,7 +2,7 @@
 
 namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 
 /**
@@ -39,7 +39,9 @@ class DDLIndexSyntax
                 FROM `information_schema`.`STATISTICS` 
                 WHERE `TABLE_SCHEMA`='{$tableSchema}' 
                 AND `TABLE_NAME`='{$tableName}';";
-        return DatabaseFacade::getInstance()->query($sql);
+        $client  = MigrateManager::getInstance()->getClient();
+        $client->queryBuilder()->raw($sql);
+        return $client->execBuilder();
     }
 
     private static function genIndexDDLSyntax($indAttrs)

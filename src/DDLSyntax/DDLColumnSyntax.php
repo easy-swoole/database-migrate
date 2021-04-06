@@ -2,8 +2,8 @@
 
 namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DDL\Enum\DataType;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
 
 /**
  * Class DDLColumnSyntax
@@ -96,7 +96,9 @@ class DDLColumnSyntax
                 FROM `information_schema`.`COLUMNS` 
                 WHERE `TABLE_SCHEMA`='{$tableSchema}' 
                 AND `TABLE_NAME`='{$tableName}';";
-        return DatabaseFacade::getInstance()->query($sql);
+        $client  = MigrateManager::getInstance()->getClient();
+        $client->queryBuilder()->raw($sql);
+        return $client->execBuilder();
     }
 
     private static function genColumnDDLSyntax($colAttrs)
