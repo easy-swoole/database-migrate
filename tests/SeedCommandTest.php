@@ -4,6 +4,7 @@ namespace EasySwoole\DatabaseMigrate\Tests;
 
 use EasySwoole\Command\Caller;
 use EasySwoole\Command\CommandManager;
+use EasySwoole\DatabaseMigrate\Config\Config;
 use EasySwoole\DatabaseMigrate\MigrateCommand;
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
@@ -11,15 +12,10 @@ use PHPUnit\Framework\TestCase;
 
 class SeedCommandTest extends TestCase
 {
-    /**
-     * @var \EasySwoole\Mysqli\Client
-     */
-    private $client;
-
     public function setUp(): void
     {
         defined("EASYSWOOLE_ROOT") or define("EASYSWOOLE_ROOT", dirname(__DIR__) . '/tests');
-        $config = new \EasySwoole\DatabaseMigrate\Config\Config();
+        $config = new Config();
         $config->setHost("mysql5");
         $config->setPort(3306);
         $config->setUser("root");
@@ -27,8 +23,7 @@ class SeedCommandTest extends TestCase
         $config->setDatabase("easyswoole");
         $config->setTimeout(5.0);
         $config->setCharset("utf8mb4");
-        \EasySwoole\DatabaseMigrate\MigrateManager::getInstance($config);
-        $this->client = MigrateManager::getInstance()->getClient();
+        MigrateManager::getInstance($config);
     }
 
     public function testSeedCommand()

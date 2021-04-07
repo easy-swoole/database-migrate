@@ -4,6 +4,7 @@ namespace EasySwoole\DatabaseMigrate\Tests;
 
 use EasySwoole\Command\Caller;
 use EasySwoole\Command\CommandManager;
+use EasySwoole\DatabaseMigrate\Config\Config;
 use EasySwoole\DatabaseMigrate\MigrateCommand;
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
@@ -14,12 +15,10 @@ use function Swoole\Coroutine\run;
 
 class MigrateCommandTest extends TestCase
 {
-    private $client;
-
     public function setUp(): void
     {
         defined("EASYSWOOLE_ROOT") or define("EASYSWOOLE_ROOT", dirname(__DIR__) . '/tests');
-        $config = new \EasySwoole\DatabaseMigrate\Config\Config();
+        $config = new Config();
         $config->setHost("mysql5");
         $config->setPort(3306);
         $config->setUser("root");
@@ -27,8 +26,7 @@ class MigrateCommandTest extends TestCase
         $config->setDatabase("easyswoole");
         $config->setTimeout(5.0);
         $config->setCharset("utf8mb4");
-        \EasySwoole\DatabaseMigrate\MigrateManager::getInstance($config);
-        $this->client = MigrateManager::getInstance()->getClient();
+        MigrateManager::getInstance($config);
     }
 
     public function initCommandManager()
@@ -77,15 +75,15 @@ class MigrateCommandTest extends TestCase
         $tableName = "gen_test";
 
         $closure = function () use ($tableName) {
-            $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
-            if (!$this->client->execBuilder()) {
-                $this->client->queryBuilder()->raw("
-                CREATE TABLE `{$tableName}` (
+            $sql = "SHOW TABLES LIKE '%{$tableName}%'";
+            if (!MigrateManager::getInstance()->query($sql)) {
+                $createSql = "
+                CREATE TABLE IF NOT EXISTS `{$tableName}` (
                   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
                   `name` varchar(255) DEFAULT NULL,
                   PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-                $this->client->execBuilder();
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+                MigrateManager::getInstance()->query($createSql);
             }
         };
         if (Coroutine::getCid() == -1) {
@@ -128,8 +126,7 @@ class MigrateCommandTest extends TestCase
 
         $result  = "";
         $closure = function () use ($tableName, &$result) {
-            $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
-            $result = $this->client->execBuilder();
+            $result = MigrateManager::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
         };
         if (Coroutine::getCid() == -1) {
             Timer::clearAll();
@@ -157,8 +154,7 @@ class MigrateCommandTest extends TestCase
 
         $result  = "";
         $closure = function () use ($tableName, &$result) {
-            $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
-            $result = $this->client->execBuilder();
+            $result = MigrateManager::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
         };
         if (Coroutine::getCid() == -1) {
             Timer::clearAll();
@@ -186,8 +182,7 @@ class MigrateCommandTest extends TestCase
 
         $result  = "";
         $closure = function () use ($tableName, &$result) {
-            $this->client->queryBuilder()->raw("SHOW TABLES LIKE '%{$tableName}%'");
-            $result = $this->client->execBuilder();
+            $result = MigrateManager::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
         };
         if (Coroutine::getCid() == -1) {
             Timer::clearAll();
