@@ -49,11 +49,11 @@ class Config extends MysqliConfig
     protected $seeder_template = __DIR__ . '/../Resource/seeder._php';
 
 
-    /** @var string migrate template class name */
-    protected $migrate_template_ddl_syntax = 'DDLSyntax';
-
     /** @var string generate migrate template file path */
     protected $migrate_generate_template = __DIR__ . '/../Resource/migrate_generate._php';
+
+    /** @var string migrate template class name */
+    protected $migrate_template_ddl_syntax = 'DDLSyntax';
 
 
     /**
@@ -235,22 +235,6 @@ class Config extends MysqliConfig
     /**
      * @return string
      */
-    public function getMigrateTemplateDdlSyntax(): string
-    {
-        return $this->migrate_template_ddl_syntax;
-    }
-
-    /**
-     * @param string $migrate_template_ddl_syntax
-     */
-    public function setMigrateTemplateDdlSyntax(string $migrate_template_ddl_syntax): void
-    {
-        $this->migrate_template_ddl_syntax = $migrate_template_ddl_syntax;
-    }
-
-    /**
-     * @return string
-     */
     public function getMigrateGenerateTemplate(): string
     {
         return $this->migrate_generate_template;
@@ -262,5 +246,21 @@ class Config extends MysqliConfig
     public function setMigrateGenerateTemplate(string $migrate_generate_template): void
     {
         $this->migrate_generate_template = $migrate_generate_template;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMigrateTemplateDdlSyntax(): string
+    {
+        return $this->migrate_template_ddl_syntax;
+    }
+
+    /**
+     * @param string $migrate_template_ddl_syntax
+     */
+    public function setMigrateTemplateDdlSyntax(string $migrate_template_ddl_syntax): void
+    {
+        $this->migrate_template_ddl_syntax = $migrate_template_ddl_syntax;
     }
 }
