@@ -79,6 +79,13 @@ final class GenerateCommand extends CommandAbstract
         return Color::render(join(PHP_EOL, $outMsg));
     }
 
+    /**
+     * @param $tableName
+     * @param $batchNo
+     * @param $outMsg
+     * @throws Throwable
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     */
     private function generate($tableName, $batchNo, &$outMsg)
     {
         $config = MigrateManager::getInstance()->getConfig();
@@ -90,7 +97,7 @@ final class GenerateCommand extends CommandAbstract
         $outMsg[]  = "<brown>Generating: </brown>{$fileName}";
         $startTime = microtime(true);
 
-        $tableSchema     = MigrateManager::getInstance()->getConfig()->getDatabase();
+        $tableSchema     = $config->getDatabase();
         $createTableDDl  = str_replace(PHP_EOL,
             str_pad(PHP_EOL, strlen(PHP_EOL) + 12, ' ', STR_PAD_RIGHT),
             join(PHP_EOL, array_filter([
@@ -123,9 +130,7 @@ final class GenerateCommand extends CommandAbstract
             throw new Exception(sprintf('Migration file "%s" is not writable', $migrateFilePath));
         }
         $noteSql = 'INSERT INTO ' . $config->getMigrateTable() . ' (`migration`,`batch`) VALUE (\'' . $fileName . '\',\'' . $batchNo . '\')';
-        $client = MigrateManager::getInstance()->getClient();
-        $client->queryBuilder()->raw($noteSql);
-        $client->execBuilder();
+        MigrateManager::getInstance()->query($noteSql);
         $outMsg[] = "<green>Generated:  </green>{$fileName} (" . round(microtime(true) - $startTime, 2) . " seconds)";
     }
 
@@ -133,12 +138,12 @@ final class GenerateCommand extends CommandAbstract
      * already exists tables
      *
      * @return array
+     * @throws Throwable
+     * @throws \EasySwoole\Mysqli\Exception\Exception
      */
-    protected function getExistsTables()
+    protected function getExistsTables(): array
     {
-        $client = MigrateManager::getInstance()->getClient();
-        $client->queryBuilder()->raw('SHOW TABLES;');
-        $result = $client->execBuilder();
+        $result = MigrateManager::getInstance()->query('SHOW TABLES;');
         if (empty($result)) {
             throw new RuntimeException('No table found.');
         }
@@ -150,7 +155,7 @@ final class GenerateCommand extends CommandAbstract
      *
      * @return array
      */
-    protected function getIgnoreTables()
+    protected function getIgnoreTables(): array
     {
         $config = MigrateManager::getInstance()->getConfig();
         $ignoreTables = [$config->getMigrateTable()];

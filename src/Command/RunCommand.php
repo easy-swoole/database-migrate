@@ -24,13 +24,6 @@ use RuntimeException;
  */
 final class RunCommand extends CommandAbstract
 {
-    private $dbClient;
-
-    public function __construct()
-    {
-        $this->dbClient = MigrateManager::getInstance()->getClient();
-    }
-
     public function commandName(): string
     {
         return 'migrate run';
@@ -59,7 +52,6 @@ final class RunCommand extends CommandAbstract
 
         $outMsg  = [];
         $batchNo = $this->getBatchNo();
-        $client  = MigrateManager::getInstance()->getClient();
         $config  = MigrateManager::getInstance()->getConfig();
         foreach ($waitMigrationFiles as $file) {
             $outMsg[]  = "<brown>Migrating: </brown>{$file}";
@@ -68,11 +60,9 @@ final class RunCommand extends CommandAbstract
             try {
                 $ref = new \ReflectionClass($className);
                 $sql = call_user_func([$ref->newInstance(), 'up']);
-                $client->queryBuilder()->raw($sql);
-                if ($client->execBuilder()) {
+                if ($sql && MigrateManager::getInstance()->query($sql)) {
                     $noteSql = 'INSERT INTO ' . $config->getMigrateTable() . ' (`migration`,`batch`) VALUE (\'' . $file . '\',\'' . $batchNo . '\')';
-                    $client->queryBuilder()->raw($noteSql);
-                    $client->execBuilder();
+                    MigrateManager::getInstance()->query($noteSql);
                 }
             } catch (\Throwable $e) {
                 return Color::error($e->getMessage());
@@ -83,17 +73,21 @@ final class RunCommand extends CommandAbstract
         return Color::render(implode(PHP_EOL, $outMsg));
     }
 
-    private function getMigrationFiles()
+    /**
+     * @return array
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
+     */
+    private function getMigrationFiles(): array
     {
         $allMigrationFiles = Util::getAllMigrateFiles();
         Util::requireOnce($allMigrationFiles);
         foreach ($allMigrationFiles as $key => $file) {
             $allMigrationFiles[$key] = basename($file, '.php');
         }
-        $client = MigrateManager::getInstance()->getClient();
         $config = MigrateManager::getInstance()->getConfig();
-        $client->queryBuilder()->raw('SELECT `migration` FROM ' . $config->getMigrateTable() . ' ORDER BY batch ASC,migration ASC');
-        $alreadyMigrationFiles = $client->execBuilder();
+        $sql = 'SELECT `migration` FROM ' . $config->getMigrateTable() . ' ORDER BY batch ASC,migration ASC';
+        $alreadyMigrationFiles = MigrateManager::getInstance()->query($sql);
         $alreadyMigrationFiles = array_column($alreadyMigrationFiles, 'migration');
 
         foreach ($allMigrationFiles as $key => $file) {
@@ -107,13 +101,14 @@ final class RunCommand extends CommandAbstract
 
     /**
      * @return int
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
-    public function getBatchNo()
+    public function getBatchNo(): int
     {
-        $client = MigrateManager::getInstance()->getClient();
         $config = MigrateManager::getInstance()->getConfig();
-        $client->queryBuilder()->raw('select max(`batch`) as max_batch from ' . $config->getMigrateTable());
-        $maxResult = $client->execBuilder();
+        $sql = 'select max(`batch`) as max_batch from ' . $config->getMigrateTable();
+        $maxResult = MigrateManager::getInstance()->query($sql);
         return intval($maxResult[0]['max_batch']) + 1;
     }
 

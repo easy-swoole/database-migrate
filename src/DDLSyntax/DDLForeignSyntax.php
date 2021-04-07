@@ -12,6 +12,8 @@ class DDLForeignSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return string
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
     public static function generate(string $tableSchema, string $tableName)
     {
@@ -25,6 +27,8 @@ class DDLForeignSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return mixed|void
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
     private static function getForeignAttribute(string $tableSchema, string $tableName)
     {
@@ -41,9 +45,7 @@ class DDLForeignSyntax
                 WHERE `TABLE_SCHEMA`='{$tableSchema}' 
                 AND `TABLE_NAME`='{$tableName}'
                 AND `REFERENCED_TABLE_SCHEMA`='{$tableSchema}';";
-        $client  = MigrateManager::getInstance()->getClient();
-        $client->queryBuilder()->raw($sql);
-        return $client->execBuilder();
+        return MigrateManager::getInstance()->query($sql);
     }
 
     /**
@@ -52,6 +54,8 @@ class DDLForeignSyntax
      * @param string $tableName
      * @param string $referencedTableName
      * @return mixed|void
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
     private static function getForeignConstraints(string $constraintSchema, string $constraintName, string $tableName, string $referencedTableName)
     {
@@ -65,12 +69,10 @@ class DDLForeignSyntax
                 AND `CONSTRAINT_NAME`='{$constraintName}'
                 AND `TABLE_NAME`='{$tableName}'
                 AND `REFERENCED_TABLE_NAME`='{$referencedTableName}';";
-        $client  = MigrateManager::getInstance()->getClient();
-        $client->queryBuilder()->raw($sql);
-        return $client->execBuilder();
+        return MigrateManager::getInstance()->query($sql);
     }
 
-    private static function genForeignDDLSyntax($indAttrs)
+    private static function genForeignDDLSyntax($indAttrs): string
     {
         $tableName            = current($indAttrs)['TABLE_NAME'];
         $tableSchema          = current($indAttrs)['TABLE_SCHEMA'];

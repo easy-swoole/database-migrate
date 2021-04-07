@@ -62,8 +62,10 @@ class DDLColumnSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return string
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
-    public static function generate(string $tableSchema, string $tableName)
+    public static function generate(string $tableSchema, string $tableName): string
     {
         $colAttrs  = self::getColumnAttribute($tableSchema, $tableName);
         $columnDDl = array_map([__CLASS__, 'genColumnDDLSyntax'], $colAttrs);
@@ -73,7 +75,9 @@ class DDLColumnSyntax
     /**
      * @param string $tableSchema
      * @param string $tableName
-     * @return array
+     * @return array|bool|null
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
     private static function getColumnAttribute(string $tableSchema, string $tableName)
     {
@@ -96,12 +100,10 @@ class DDLColumnSyntax
                 FROM `information_schema`.`COLUMNS` 
                 WHERE `TABLE_SCHEMA`='{$tableSchema}' 
                 AND `TABLE_NAME`='{$tableName}';";
-        $client  = MigrateManager::getInstance()->getClient();
-        $client->queryBuilder()->raw($sql);
-        return $client->execBuilder();
+        return MigrateManager::getInstance()->query($sql);
     }
 
-    private static function genColumnDDLSyntax($colAttrs)
+    private static function genColumnDDLSyntax($colAttrs): string
     {
         // setColumnType
         // setColumnName

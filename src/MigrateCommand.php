@@ -132,10 +132,9 @@ class MigrateCommand extends CommandAbstract
 
     private function checkDefaultMigrateTable()
     {
-        $client = MigrateManager::getInstance()->getClient();
-        $config = MigrateManager::getInstance()->getConfig();
-        $client->queryBuilder()->raw('SHOW TABLES LIKE \'' . $config->getMigrateTable() . '\'');
-        $tableExists = $client->execBuilder();
+        $config      = MigrateManager::getInstance()->getConfig();
+        $sql         = 'SHOW TABLES LIKE \'' . $config->getMigrateTable() . '\'';
+        $tableExists = MigrateManager::getInstance()->query($sql);
         empty($tableExists) and $this->createDefaultMigrateTable();
     }
 
@@ -152,9 +151,7 @@ class MigrateCommand extends CommandAbstract
             $table->normal('ind_batch', 'batch');
         });
 
-        $client = MigrateManager::getInstance()->getClient();
-        $client->queryBuilder()->raw($sql);
-        if ($client->execBuilder() === false) {
+        if (MigrateManager::getInstance()->query($sql) === false) {
             throw new RuntimeException('Create default migrate table fail.' . PHP_EOL . ' SQL: ' . $sql);
         }
     }

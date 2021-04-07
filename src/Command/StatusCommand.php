@@ -40,8 +40,10 @@ final class StatusCommand extends CommandAbstract
 
     /**
      * @return string|null
-     * @throws Exception
+     * @throws \EasySwoole\Mysqli\Exception\Exception
      * @throws \Throwable
+     * @author heelie.hj@gmail.com
+     * @date 2021-04-07 09:07:21
      */
     public function exec(): ?string
     {
@@ -50,7 +52,7 @@ final class StatusCommand extends CommandAbstract
         if (count($allMigrateInfo) == 0) return null;
         $tmpData = [];
         foreach (array_keys(current($allMigrateInfo)) as $key) {
-            $$key = ($this->strlen)($key);
+            $$key          = ($this->strlen)($key);
             $tmpData[$key] = $key;
         }
         array_unshift($allMigrateInfo, $tmpData);
@@ -76,16 +78,15 @@ final class StatusCommand extends CommandAbstract
     }
 
     /**
-     * @return array|void
+     * @return array|bool|null
      * @throws \EasySwoole\Mysqli\Exception\Exception
      * @throws \Throwable
      */
     private function getAllMigrateInfo()
     {
-        $client = MigrateManager::getInstance()->getClient();
         $config = MigrateManager::getInstance()->getConfig();
-        $client->queryBuilder()->raw('SELECT * FROM ' . $config->getMigrateTable());
-        return $client->execBuilder();
+        $sql    = 'SELECT * FROM ' . $config->getMigrateTable();
+        return MigrateManager::getInstance()->query($sql);
     }
 
     public function checkLenFunc()

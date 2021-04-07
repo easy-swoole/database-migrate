@@ -46,7 +46,6 @@ final class ResetCommand extends CommandAbstract
 
         $outMsg = [];
 
-        $client = MigrateManager::getInstance()->getClient();
         $config = MigrateManager::getInstance()->getConfig();
 
         foreach ($waitRollbackFiles as $id => $file) {
@@ -56,11 +55,9 @@ final class ResetCommand extends CommandAbstract
             try {
                 $ref = new \ReflectionClass($className);
                 $sql = call_user_func([$ref->newInstance(), 'down']);
-                $client->queryBuilder()->raw($sql);
-                if ($client->execBuilder()) {
+                if ($sql && MigrateManager::getInstance()->query($sql)) {
                     $deleteSql = "DELETE FROM `" . $config->getMigrateTable() . "` WHERE `id`='{$id}' ";
-                    $client->queryBuilder()->raw($deleteSql);
-                    $client->execBuilder();
+                    MigrateManager::getInstance()->query($deleteSql);
                 }
             } catch (Throwable $e) {
                 return Color::error($e->getMessage());
@@ -73,12 +70,10 @@ final class ResetCommand extends CommandAbstract
 
     private function getRollbackFiles()
     {
-        $config = MigrateManager::getInstance()->getConfig();
-        $client    = MigrateManager::getInstance()->getClient();
+        $config    = MigrateManager::getInstance()->getConfig();
         $tableName = $config->getMigrateTable();
         $sql       = "SELECT `id`,`migration` FROM `{$tableName}` ORDER BY `id` DESC ";
-        $client->queryBuilder()->raw($sql);
-        $readyRollbackFiles = $client->execBuilder();
+        $readyRollbackFiles = MigrateManager::getInstance()->query($sql);
         if (empty($readyRollbackFiles)) {
             return Color::success('No files to be rollback.');
         }
