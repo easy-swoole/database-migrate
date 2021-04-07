@@ -4,7 +4,7 @@ namespace EasySwoole\DatabaseMigrate\Utility;
 
 use DateTime;
 use DateTimeZone;
-use EasySwoole\DatabaseMigrate\Config\Config;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Validate\Validator;
 use Throwable;
 
@@ -91,7 +91,8 @@ class Util
      */
     public static function getAllMigrateFiles(): array
     {
-        return glob(Config::MIGRATE_PATH . '*.php');
+        $config = MigrateManager::getInstance()->getConfig();
+        return glob($config->getMigratePath() . '*.php');
     }
 
     /**
@@ -99,7 +100,8 @@ class Util
      */
     public static function getAllSeederFiles(): array
     {
-        return glob(Config::SEEDER_PATH . '*.php');
+        $config = MigrateManager::getInstance()->getConfig();
+        return glob($config->getSeederPath() . '*.php');
     }
 
     /**

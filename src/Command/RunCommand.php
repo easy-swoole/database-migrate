@@ -1,6 +1,6 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Command\Migrate;
+namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\AbstractInterface\CommandInterface;
@@ -10,9 +10,8 @@ use EasySwoole\DDL\DDLBuilder;
 use EasySwoole\DDL\Enum\Character;
 use EasySwoole\DDL\Enum\Engine;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\Command\MigrateCommand;
-use EasySwoole\DatabaseMigrate\Config\Config;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\MigrateCommand;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 use EasySwoole\Spl\SplArray;
 use RuntimeException;
@@ -25,13 +24,6 @@ use RuntimeException;
  */
 final class RunCommand extends CommandAbstract
 {
-    private $dbFacade;
-
-    public function __construct()
-    {
-        $this->dbFacade = DatabaseFacade::getInstance();
-    }
-
     public function commandName(): string
     {
         return 'migrate run';
@@ -60,6 +52,7 @@ final class RunCommand extends CommandAbstract
 
         $outMsg  = [];
         $batchNo = $this->getBatchNo();
+        $config  = MigrateManager::getInstance()->getConfig();
         foreach ($waitMigrationFiles as $file) {
             $outMsg[]  = "<brown>Migrating: </brown>{$file}";
             $startTime = microtime(true);
@@ -67,9 +60,9 @@ final class RunCommand extends CommandAbstract
             try {
                 $ref = new \ReflectionClass($className);
                 $sql = call_user_func([$ref->newInstance(), 'up']);
-                if ($this->dbFacade->query($sql)) {
-                    $noteSql = 'insert into ' . Config::DEFAULT_MIGRATE_TABLE . ' (`migration`,`batch`) VALUE (\'' . $file . '\',\'' . $batchNo . '\')';
-                    $this->dbFacade->query($noteSql);
+                if ($sql && MigrateManager::getInstance()->query($sql)) {
+                    $noteSql = 'INSERT INTO ' . $config->getMigrateTable() . ' (`migration`,`batch`) VALUE (\'' . $file . '\',\'' . $batchNo . '\')';
+                    MigrateManager::getInstance()->query($noteSql);
                 }
             } catch (\Throwable $e) {
                 return Color::error($e->getMessage());
@@ -80,14 +73,21 @@ final class RunCommand extends CommandAbstract
         return Color::render(implode(PHP_EOL, $outMsg));
     }
 
-    private function getMigrationFiles()
+    /**
+     * @return array
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
+     */
+    private function getMigrationFiles(): array
     {
         $allMigrationFiles = Util::getAllMigrateFiles();
         Util::requireOnce($allMigrationFiles);
         foreach ($allMigrationFiles as $key => $file) {
             $allMigrationFiles[$key] = basename($file, '.php');
         }
-        $alreadyMigrationFiles = $this->dbFacade->query('select `migration` from ' . Config::DEFAULT_MIGRATE_TABLE . ' order by batch asc,migration asc');
+        $config = MigrateManager::getInstance()->getConfig();
+        $sql = 'SELECT `migration` FROM ' . $config->getMigrateTable() . ' ORDER BY batch ASC,migration ASC';
+        $alreadyMigrationFiles = MigrateManager::getInstance()->query($sql);
         $alreadyMigrationFiles = array_column($alreadyMigrationFiles, 'migration');
 
         foreach ($allMigrationFiles as $key => $file) {
@@ -101,10 +101,14 @@ final class RunCommand extends CommandAbstract
 
     /**
      * @return int
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
-    public function getBatchNo()
+    public function getBatchNo(): int
     {
-        $maxResult = $this->dbFacade->query('select max(`batch`) as max_batch from ' . Config::DEFAULT_MIGRATE_TABLE);
+        $config = MigrateManager::getInstance()->getConfig();
+        $sql = 'select max(`batch`) as max_batch from ' . $config->getMigrateTable();
+        $maxResult = MigrateManager::getInstance()->query($sql);
         return intval($maxResult[0]['max_batch']) + 1;
     }
 

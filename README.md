@@ -4,34 +4,53 @@
 
 ## 使用方法
 
-在全局 `boostrap` 事件中注册 `MigrateCommand` 
+在全局 `boostrap` 事件中注册 `MigrateCommand` 并添加配置信息
 
 > bootstrap.php
 
 ```php
-\EasySwoole\Command\CommandManager::getInstance()->addCommand(new \EasySwoole\DatabaseMigrate\Command\MigrateCommand());
-```
-
-在dev中增加配置信息
-
-> dev.php
-
-```php
-return [
-    // ......
-    'MYSQL' => [
-        'host' => '127.0.0.1',
-        'port' => 3306,
-        'username' => 'root',
-        'password' => 'root',
-        'database' => 'easyswoole',
-    ]
-];
+\EasySwoole\Command\CommandManager::getInstance()->addCommand(new \EasySwoole\DatabaseMigrate\MigrateCommand());
+$config = new \EasySwoole\DatabaseMigrate\Config\Config();
+$config->setHost("127.0.0.1");
+$config->setPort(3306);
+$config->setUser("root");
+$config->setPassword("123456");
+$config->setDatabase("easyswoole");
+$config->setTimeout(5.0);
+$config->setCharset("utf8mb4");
+//===========可选配置修改项，以下参数均有默认值===========
+// 迁移记录的数据库表名
+$config->setMigrateTable("migrations");
+// 迁移文件目录的绝对路径
+$config->setMigratePath(EASYSWOOLE_ROOT . '/Database/Migrates/');
+// 迁移模板文件的绝对路径
+$config->setMigrateTemplate(EASYSWOOLE_ROOT . '/vendor/easyswoole/db-migrate/src/Resource/migrate._php');
+// 迁移模板类的类名
+$config->setMigrateTemplateClassName("MigratorClassName");
+// 迁移模板类的表名
+$config->setMigrateTemplateTableName("MigratorTableName");
+// 迁移模板创建表的模板文件的绝对路径
+$config->setMigrateCreateTemplate(EASYSWOOLE_ROOT . '/vendor/easyswoole/db-migrate/src/Resource/migrate_create._php');
+// 迁移模板修改表的模板文件的绝对路径
+$config->setMigrateAlterTemplate(EASYSWOOLE_ROOT . '/vendor/easyswoole/db-migrate/src/Resource/migrate_alter._php');
+// 迁移模板删除表的模板文件的绝对路径
+$config->setMigrateDropTemplate(EASYSWOOLE_ROOT . '/vendor/easyswoole/db-migrate/src/Resource/migrate_drop._php');
+// 数据填充目录绝对路径
+$config->setSeederPath(EASYSWOOLE_ROOT . '/Database/Seeds/');
+// 数据填充模板类的类名
+$config->setSeederTemplateClassName("SeederClassName");
+// 数据填充模板文件的绝对路径
+$config->setSeederTemplate(EASYSWOOLE_ROOT . '/vendor/easyswoole/db-migrate/src/Resource/seeder._php');
+// 逆向生成迁移文件的模板文件绝对路径
+$config->setMigrateGenerateTemplate(EASYSWOOLE_ROOT . '/vendor/easyswoole/db-migrate/src/Resource/migrate_generate._php');
+// 逆向生成迁移模板SQL语句的DDL代码块
+$config->setMigrateTemplateDdlSyntax("DDLSyntax");
+\EasySwoole\DatabaseMigrate\MigrateManager::getInstance($config);
 ```
 
 执行 `php easyswoole migrate -h`
 
-```shell
+```text
 php easyswoole migrate -h
 Database migrate tool
 

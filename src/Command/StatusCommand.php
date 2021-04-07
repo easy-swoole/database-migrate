@@ -1,13 +1,12 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Command\Migrate;
+namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\AbstractInterface\ResultInterface;
 use EasySwoole\Command\Color;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\Config\Config;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 use EasySwoole\DatabaseMigrate\Validate\Validator;
 use EasySwoole\Utility\File;
@@ -41,7 +40,10 @@ final class StatusCommand extends CommandAbstract
 
     /**
      * @return string|null
-     * @throws Exception
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
+     * @author heelie.hj@gmail.com
+     * @date 2021-04-07 09:07:21
      */
     public function exec(): ?string
     {
@@ -50,7 +52,7 @@ final class StatusCommand extends CommandAbstract
         if (count($allMigrateInfo) == 0) return null;
         $tmpData = [];
         foreach (array_keys(current($allMigrateInfo)) as $key) {
-            $$key = ($this->strlen)($key);
+            $$key          = ($this->strlen)($key);
             $tmpData[$key] = $key;
         }
         array_unshift($allMigrateInfo, $tmpData);
@@ -76,11 +78,15 @@ final class StatusCommand extends CommandAbstract
     }
 
     /**
-     * @return array|void
+     * @return array|bool|null
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
     private function getAllMigrateInfo()
     {
-        return DatabaseFacade::getInstance()->query('SELECT * FROM ' . Config::DEFAULT_MIGRATE_TABLE);
+        $config = MigrateManager::getInstance()->getConfig();
+        $sql    = 'SELECT * FROM ' . $config->getMigrateTable();
+        return MigrateManager::getInstance()->query($sql);
     }
 
     public function checkLenFunc()

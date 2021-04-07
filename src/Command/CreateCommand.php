@@ -1,14 +1,14 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Command\Migrate;
+namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\AbstractInterface\CommandInterface;
 use EasySwoole\Command\AbstractInterface\ResultInterface;
 use EasySwoole\Command\Color;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\Command\MigrateCommand;
-use EasySwoole\DatabaseMigrate\Config\Config;
+use EasySwoole\DatabaseMigrate\MigrateCommand;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 use EasySwoole\DatabaseMigrate\Validate\Validator;
 use EasySwoole\Utility\File;
@@ -49,6 +49,7 @@ final class CreateCommand extends CommandAbstract
      */
     public function exec(): ?string
     {
+        $config = MigrateManager::getInstance()->getConfig();
         [$migrateName, $migrateTemplate] = $this->getMigrateName();
 
         if (empty($migrateName)) {
@@ -59,7 +60,7 @@ final class CreateCommand extends CommandAbstract
 
         $migrateFileName = Util::genMigrateFileName($migrateName);
 
-        $migrateFilePath = Config::MIGRATE_PATH . $migrateFileName;
+        $migrateFilePath = $config->getMigratePath() . $migrateFileName;
 
         // if (!File::createDirectory($migratePath)) {
         //     throw new \Exception(sprintf('Failed to create directory "%s", please check permissions', $migratePath));
@@ -69,7 +70,7 @@ final class CreateCommand extends CommandAbstract
             throw new Exception(sprintf('Migration file "%s" creation failed, file already exists or directory is not writable', $migrateFilePath));
         }
 
-        $contents = str_replace([Config::MIGRATE_TEMPLATE_CLASS_NAME, Config::MIGRATE_TEMPLATE_TABLE_NAME], $migrateClassName, file_get_contents($migrateTemplate));
+        $contents = str_replace([$config->getMigrateTemplateClassName(), $config->getMigrateTemplateTableName()], $migrateClassName, file_get_contents($migrateTemplate));
 
         if (file_put_contents($migrateFilePath, $contents) === false) {
             throw new Exception(sprintf('Migration file "%s" is not writable', $migrateFilePath));
@@ -80,16 +81,17 @@ final class CreateCommand extends CommandAbstract
 
     private function getMigrateName()
     {
+        $config = MigrateManager::getInstance()->getConfig();
         if ($migrateName = $this->getOpt(['c', 'create'])) {
-            return [$migrateName, Config::MIGRATE_CREATE_TEMPLATE];
+            return [$migrateName, $config->getMigrateCreateTemplate()];
         } elseif ($migrateName = $this->getOpt(['a', 'alter'])) {
-            return [$migrateName, Config::MIGRATE_ALTER_TEMPLATE];
+            return [$migrateName, $config->getMigrateAlterTemplate()];
         } elseif ($migrateName = $this->getOpt(['d', 'drop'])) {
-            return [$migrateName, Config::MIGRATE_DROP_TEMPLATE];
+            return [$migrateName, $config->getMigrateDropTemplate()];
         } elseif ($migrateName = $this->getOpt(['t', 'table'])) {
-            return [$migrateName, Config::MIGRATE_TEMPLATE];
+            return [$migrateName, $config->getMigrateTemplate()];
         } elseif ($migrateName = $this->getArg(1)) {
-            return [$migrateName, Config::MIGRATE_TEMPLATE];
+            return [$migrateName, $config->getMigrateTemplate()];
         }
         return [null, null];
     }

@@ -1,30 +1,31 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Command;
+namespace EasySwoole\DatabaseMigrate;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\Color;
 use EasySwoole\Command\CommandManager;
-use EasySwoole\DatabaseMigrate\Database\Config;
-use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DDL\Blueprint\Create\Table as CreateTable;
 use EasySwoole\DDL\DDLBuilder;
 use EasySwoole\DDL\Enum\Character;
 use EasySwoole\DDL\Enum\Engine;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\Command\Migrate\CreateCommand;
-use EasySwoole\DatabaseMigrate\Command\Migrate\GenerateCommand;
-use EasySwoole\DatabaseMigrate\Command\Migrate\ResetCommand;
-use EasySwoole\DatabaseMigrate\Command\Migrate\RollbackCommand;
-use EasySwoole\DatabaseMigrate\Command\Migrate\RunCommand;
-use EasySwoole\DatabaseMigrate\Command\Migrate\SeedCommand;
-use EasySwoole\DatabaseMigrate\Command\Migrate\StatusCommand;
+use EasySwoole\DatabaseMigrate\Command\CreateCommand;
+use EasySwoole\DatabaseMigrate\Command\GenerateCommand;
+use EasySwoole\DatabaseMigrate\Command\ResetCommand;
+use EasySwoole\DatabaseMigrate\Command\RollbackCommand;
+use EasySwoole\DatabaseMigrate\Command\RunCommand;
+use EasySwoole\DatabaseMigrate\Command\SeedCommand;
+use EasySwoole\DatabaseMigrate\Command\StatusCommand;
+use Swoole\Coroutine;
 use Swoole\Coroutine\Scheduler;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
+use Swoole\Timer;
 use Throwable;
+use function Swoole\Coroutine\run;
 
 /**
  * Class MigrateCommand
@@ -35,13 +36,13 @@ use Throwable;
 class MigrateCommand extends CommandAbstract
 {
     private $command = [
-        'create' => CreateCommand::class,
+        'create'   => CreateCommand::class,
         'generate' => GenerateCommand::class,
-        'reset' => ResetCommand::class,
+        'reset'    => ResetCommand::class,
         'rollback' => RollbackCommand::class,
-        'run' => RunCommand::class,
-        'seed' => SeedCommand::class,
-        'status' => StatusCommand::class,
+        'run'      => RunCommand::class,
+        'seed'     => SeedCommand::class,
+        'status'   => StatusCommand::class,
     ];
 
     public function commandName(): string
@@ -95,18 +96,22 @@ class MigrateCommand extends CommandAbstract
 
     public function exec(): ?string
     {
-        $scheduler = new Scheduler();
-        $scheduler->add(function () use (&$ret) {
+        $closure = function () use (&$result) {
             try {
                 $this->checkDefaultMigrateTable();
-                $ret = $this->callOptionMethod($this->getArg(0), 'exec');
+                $result = $this->callOptionMethod($this->getArg(0), "exec");
             } catch (Throwable $throwable) {
-                $ret = Color::error($throwable->getMessage()) . "\n" .
+                $result = Color::error($throwable->getMessage()) . "\n" .
                     CommandManager::getInstance()->displayCommandHelp('migrate');
             }
-        });
-        $scheduler->start();
-        return $ret ?? null;
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+        return $result ?? "";
     }
 
     /**
@@ -127,16 +132,16 @@ class MigrateCommand extends CommandAbstract
 
     private function checkDefaultMigrateTable()
     {
-        $client = MigrateManager::getInstance()->getClient();
-        $client->queryBuilder()->raw('SHOW TABLES LIKE \'' . Config::DEFAULT_MIGRATE_TABLE . '\'');
-        $tableExists = $client->execBuilder();
-
-        empty($tableExists) && $this->createDefaultMigrateTable();
+        $config      = MigrateManager::getInstance()->getConfig();
+        $sql         = 'SHOW TABLES LIKE \'' . $config->getMigrateTable() . '\'';
+        $tableExists = MigrateManager::getInstance()->query($sql);
+        empty($tableExists) and $this->createDefaultMigrateTable();
     }
 
     private function createDefaultMigrateTable()
     {
-        $sql = DDLBuilder::create(Config::DEFAULT_MIGRATE_TABLE, function (CreateTable $table) {
+        $config = MigrateManager::getInstance()->getConfig();
+        $sql    = DDLBuilder::create($config->getMigrateTable(), function (CreateTable $table) {
             $table->setIfNotExists()->setTableAutoIncrement(1);
             $table->setTableEngine(Engine::INNODB);
             $table->setTableCharset(Character::UTF8MB4_GENERAL_CI);
@@ -146,9 +151,7 @@ class MigrateCommand extends CommandAbstract
             $table->normal('ind_batch', 'batch');
         });
 
-        $client = MigrateManager::getInstance()->getClient();
-        $client->queryBuilder()->raw($sql);
-        if ($client->execBuilder() === false) {
+        if (MigrateManager::getInstance()->query($sql) === false) {
             throw new RuntimeException('Create default migrate table fail.' . PHP_EOL . ' SQL: ' . $sql);
         }
     }

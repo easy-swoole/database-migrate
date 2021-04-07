@@ -4,25 +4,29 @@ namespace EasySwoole\DatabaseMigrate\Tests;
 
 use EasySwoole\Command\Caller;
 use EasySwoole\Command\CommandManager;
-use EasySwoole\DatabaseMigrate\Command\MigrateCommand;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\Config\Config;
+use EasySwoole\DatabaseMigrate\MigrateCommand;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
-use EasySwoole\Spl\SplArray;
 use PHPUnit\Framework\TestCase;
+use Swoole\Coroutine;
+use Swoole\Timer;
+use function Swoole\Coroutine\run;
 
 class MigrateCommandTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
-        require_once "EasySwoole.php";
         defined("EASYSWOOLE_ROOT") or define("EASYSWOOLE_ROOT", dirname(__DIR__) . '/tests');
-        DatabaseFacade::getInstance()->setConfig(new SplArray([
-            'host' => 'mysql5',
-            'port' => 3306,
-            'username' => 'root',
-            'password' => '123456',
-            'database' => 'easyswoole',
-        ]));
+        $config = new Config();
+        $config->setHost("mysql5");
+        $config->setPort(3306);
+        $config->setUser("root");
+        $config->setPassword("123456");
+        $config->setDatabase("easyswoole");
+        $config->setTimeout(5.0);
+        $config->setCharset("utf8mb4");
+        MigrateManager::getInstance($config);
     }
 
     public function initCommandManager()
@@ -50,7 +54,7 @@ class MigrateCommandTest extends TestCase
     public function testCreateCommand()
     {
         $tableName = "User";
-        $caller = new Caller();
+        $caller    = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
         $caller->setParams([
@@ -69,12 +73,26 @@ class MigrateCommandTest extends TestCase
     public function testGenerateCommand()
     {
         $tableName = "gen_test";
-        DatabaseFacade::getInstance()->query("
-        CREATE TABLE `{$tableName}` (
-          `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-          `name` varchar(255) DEFAULT NULL,
-          PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $closure = function () use ($tableName) {
+            $sql = "SHOW TABLES LIKE '%{$tableName}%'";
+            if (!MigrateManager::getInstance()->query($sql)) {
+                $createSql = "
+                CREATE TABLE IF NOT EXISTS `{$tableName}` (
+                  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                  `name` varchar(255) DEFAULT NULL,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+                MigrateManager::getInstance()->query($createSql);
+            }
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+
         $caller = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
@@ -94,7 +112,7 @@ class MigrateCommandTest extends TestCase
     public function testResetCommand()
     {
         $tableName = "gen_test";
-        $caller = new Caller();
+        $caller    = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
         $caller->setParams([
@@ -105,14 +123,25 @@ class MigrateCommandTest extends TestCase
         // $this->unlinkAllMigrateFiles();
         $this->initCommandManager();
         CommandManager::getInstance()->run($caller);
-        $result = DatabaseFacade::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
+
+        $result  = "";
+        $closure = function () use ($tableName, &$result) {
+            $result = MigrateManager::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+
         $this->assertEquals([], $result);
     }
 
     public function testRunCommand()
     {
         $tableName = "gen_test";
-        $caller = new Caller();
+        $caller    = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
         $caller->setParams([
@@ -122,14 +151,25 @@ class MigrateCommandTest extends TestCase
         ]);
         $this->initCommandManager();
         CommandManager::getInstance()->run($caller);
-        $result = DatabaseFacade::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
+
+        $result  = "";
+        $closure = function () use ($tableName, &$result) {
+            $result = MigrateManager::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+
         $this->assertGreaterThan(0, sizeof($result));
     }
 
     public function testRollbackCommand()
     {
         $tableName = "gen_test";
-        $caller = new Caller();
+        $caller    = new Caller();
         $caller->setScript("easyswoole");
         $caller->setCommand("migrate");
         $caller->setParams([
@@ -139,7 +179,18 @@ class MigrateCommandTest extends TestCase
         ]);
         $this->initCommandManager();
         CommandManager::getInstance()->run($caller);
-        $result = DatabaseFacade::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
+
+        $result  = "";
+        $closure = function () use ($tableName, &$result) {
+            $result = MigrateManager::getInstance()->query("SHOW TABLES LIKE '%{$tableName}%'");
+        };
+        if (Coroutine::getCid() == -1) {
+            Timer::clearAll();
+            run($closure);
+        } else {
+            $closure();
+        }
+
         $this->assertEquals([], $result);
     }
 

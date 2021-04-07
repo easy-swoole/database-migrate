@@ -2,7 +2,7 @@
 
 namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 
 /**
@@ -17,8 +17,10 @@ class DDLIndexSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return string
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
-    public static function generate(string $tableSchema, string $tableName)
+    public static function generate(string $tableSchema, string $tableName): string
     {
         $indAttrs = self::getIndexAttribute($tableSchema, $tableName);
         $indAttrs = Util::arrayBindKey($indAttrs, 'INDEX_NAME');
@@ -26,6 +28,13 @@ class DDLIndexSyntax
         return join(PHP_EOL, $indexDDl);
     }
 
+    /**
+     * @param string $tableSchema
+     * @param string $tableName
+     * @return array|bool|null
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
+     */
     private static function getIndexAttribute(string $tableSchema, string $tableName)
     {
         $columns = join(',', [
@@ -39,10 +48,14 @@ class DDLIndexSyntax
                 FROM `information_schema`.`STATISTICS` 
                 WHERE `TABLE_SCHEMA`='{$tableSchema}' 
                 AND `TABLE_NAME`='{$tableName}';";
-        return DatabaseFacade::getInstance()->query($sql);
+        return MigrateManager::getInstance()->query($sql);
     }
 
-    private static function genIndexDDLSyntax($indAttrs)
+    /**
+     * @param $indAttrs
+     * @return string
+     */
+    private static function genIndexDDLSyntax($indAttrs): string
     {
         $nonUnique    = current($indAttrs)['NON_UNIQUE'];
         $indexName    = current($indAttrs)['INDEX_NAME'];

@@ -1,6 +1,6 @@
 <?php
 
-namespace EasySwoole\DatabaseMigrate\Command\Migrate;
+namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
 use EasySwoole\Command\AbstractInterface\CommandInterface;
@@ -10,9 +10,8 @@ use EasySwoole\DDL\DDLBuilder;
 use EasySwoole\DDL\Enum\Character;
 use EasySwoole\DDL\Enum\Engine;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\Command\MigrateCommand;
-use EasySwoole\DatabaseMigrate\Config\Config;
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+use EasySwoole\DatabaseMigrate\MigrateCommand;
+use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 use EasySwoole\DatabaseMigrate\Validate\Validator;
 use EasySwoole\Spl\SplArray;
@@ -77,13 +76,14 @@ final class SeedCommand extends CommandAbstract
 
         $className = ucfirst(Util::lineConvertHump($className));
 
-        $seederFilePath = Config::SEEDER_PATH . $className . '.php';
+        $config         = MigrateManager::getInstance()->getConfig();
+        $seederFilePath = $config->getSeederPath() . $className . '.php';
 
         if (!File::touchFile($seederFilePath, false)) {
             throw new RuntimeException(sprintf('seeder file "%s" create failed, file already exists or directory is not writable', $seederFilePath));
         }
 
-        $contents = str_replace(Config::SEEDER_TEMPLATE_CLASS_NAME, $className, file_get_contents(Config::SEEDER_TEMPLATE));
+        $contents = str_replace($config->getSeederTemplateClassName(), $className, file_get_contents($config->getSeederTemplate()));
 
         if (file_put_contents($seederFilePath, $contents) === false) {
             throw new RuntimeException(sprintf('Seeder file "%s" is not writable', $seederFilePath));
@@ -94,11 +94,12 @@ final class SeedCommand extends CommandAbstract
 
     private function seederRun(array $waitSeedFiles)
     {
+        $config = MigrateManager::getInstance()->getConfig();
         $outMsg = [];
-        array_walk($waitSeedFiles, function ($className) use (&$outMsg) {
+        array_walk($waitSeedFiles, function ($className) use (&$outMsg, $config) {
             $className = pathinfo($className, PATHINFO_FILENAME);
             $filename  = $className . '.php';
-            $filepath  = Config::SEEDER_PATH . $filename;
+            $filepath  = $config->getSeederPath() . $filename;
             $startTime = microtime(true);
             $outMsg[]  = "<brown>Seeding: </brown>" . $filename;
             if (!file_exists($filepath)) {

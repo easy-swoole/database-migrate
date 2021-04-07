@@ -2,7 +2,8 @@
 
 namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 
-use EasySwoole\DatabaseMigrate\Databases\DatabaseFacade;
+
+use EasySwoole\DatabaseMigrate\MigrateManager;
 
 /**
  * Class DDLTableSyntax
@@ -16,8 +17,10 @@ class DDLTableSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return string
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
-    public static function generate(string $tableSchema, string $tableName)
+    public static function generate(string $tableSchema, string $tableName): string
     {
         $tabAttrs = self::getTableAttribute($tableSchema, $tableName);
         return self::genTableDDLSyntax(current($tabAttrs));
@@ -27,8 +30,10 @@ class DDLTableSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return array
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
-    private static function getTableAttribute(string $tableSchema, string $tableName)
+    private static function getTableAttribute(string $tableSchema, string $tableName): array
     {
         $columns = join(',', [
             '`TABLE_NAME`',
@@ -41,14 +46,14 @@ class DDLTableSyntax
                 FROM `information_schema`.`TABLES` 
                 WHERE `TABLE_SCHEMA`='{$tableSchema}' 
                 AND `TABLE_NAME`='{$tableName}';";
-        return DatabaseFacade::getInstance()->query($sql);
+        return MigrateManager::getInstance()->query($sql);
     }
 
     /**
      * @param array $table
      * @return string
      */
-    private static function genTableDDLSyntax(array $table)
+    private static function genTableDDLSyntax(array $table): string
     {
         $createTableDDl   = [];
         $createTableDDl[] = "\$table->setIfNotExists();";
