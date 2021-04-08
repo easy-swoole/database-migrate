@@ -7,7 +7,8 @@
         "framework",
         "easyswoole",
         "database",
-        "migrate"
+        "migrate",
+        "db-migrate"
     ],
     "homepage": "https://www.easyswoole.com/",
     "license": "Apache-2.0",

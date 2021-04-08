@@ -79,12 +79,12 @@ class MigrateCommand extends CommandAbstract
         } catch (Throwable $throwable) {
             //do something
         } finally {
-            $commandHelp->addActionOpt('-m, --mode[=dev]', 'Run mode');
+            // $commandHelp->addActionOpt('-m, --mode[=dev]', 'Run mode');
             $commandHelp->addActionOpt('-h, --help', 'Get help');
         }
         $commandHelp->addAction('create', 'Create the migration repository');
         $commandHelp->addAction('generate', 'Generate migration repository for existing tables');
-        $commandHelp->addAction('run', 'run all migrations');
+        $commandHelp->addAction('run', 'Run all migrations');
         $commandHelp->addAction('rollback', 'Rollback the last database migration');
         // $commandHelp->addAction('fresh', 'Drop all tables and re-run all migrations');
         // $commandHelp->addAction('refresh', 'Reset and re-run all migrations');
