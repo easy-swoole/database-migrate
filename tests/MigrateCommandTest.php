@@ -17,7 +17,6 @@ class MigrateCommandTest extends TestCase
 {
     public function setUp(): void
     {
-        defined("EASYSWOOLE_ROOT") or define("EASYSWOOLE_ROOT", dirname(__DIR__) . '/tests');
         $config = new Config();
         $config->setHost("mysql5");
         $config->setPort(3306);
