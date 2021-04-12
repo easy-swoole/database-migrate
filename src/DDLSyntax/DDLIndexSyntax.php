@@ -4,6 +4,7 @@ namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
+use EasySwoole\Mysqli\Exception\Exception;
 
 /**
  * Class DDLIndexSyntax
@@ -17,7 +18,7 @@ class DDLIndexSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return string
-     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws Exception
      * @throws \Throwable
      */
     public static function generate(string $tableSchema, string $tableName): string
@@ -32,7 +33,7 @@ class DDLIndexSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return array|bool|null
-     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws Exception
      * @throws \Throwable
      */
     private static function getIndexAttribute(string $tableSchema, string $tableName)

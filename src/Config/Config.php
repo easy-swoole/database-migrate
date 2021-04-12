@@ -18,7 +18,7 @@ class Config extends MysqliConfig
     protected $migrate_table = "migrations";
 
     /** @var string migrate path */
-    protected $migrate_path = EASYSWOOLE_ROOT . '/Database/Migrates/';
+    protected $migrate_path;
 
     /** @var string migrate template file path */
     protected $migrate_template = __DIR__ . '/../Resource/migrate._php';
@@ -262,5 +262,12 @@ class Config extends MysqliConfig
     public function setMigrateTemplateDdlSyntax(string $migrate_template_ddl_syntax): void
     {
         $this->migrate_template_ddl_syntax = $migrate_template_ddl_syntax;
+    }
+
+    protected function initialize(): void
+    {
+        if(empty($this->migrate_path)){
+            $this->migrate_path =  getcwd() . '/Database/Migrates/';
+        }
     }
 }

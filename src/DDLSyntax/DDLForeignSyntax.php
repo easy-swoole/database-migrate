@@ -5,6 +5,7 @@ namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DDL\Blueprint\Create\Table;
 use EasySwoole\DatabaseMigrate\Utility\Util;
+use EasySwoole\Mysqli\Exception\Exception;
 
 class DDLForeignSyntax
 {
@@ -12,7 +13,7 @@ class DDLForeignSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return string
-     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws Exception
      * @throws \Throwable
      */
     public static function generate(string $tableSchema, string $tableName)
@@ -27,7 +28,7 @@ class DDLForeignSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return mixed|void
-     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws Exception
      * @throws \Throwable
      */
     private static function getForeignAttribute(string $tableSchema, string $tableName)
@@ -54,7 +55,7 @@ class DDLForeignSyntax
      * @param string $tableName
      * @param string $referencedTableName
      * @return mixed|void
-     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws Exception
      * @throws \Throwable
      */
     private static function getForeignConstraints(string $constraintSchema, string $constraintName, string $tableName, string $referencedTableName)

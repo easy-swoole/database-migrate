@@ -4,6 +4,7 @@ namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 
 
 use EasySwoole\DatabaseMigrate\MigrateManager;
+use EasySwoole\Mysqli\Exception\Exception;
 
 /**
  * Class DDLTableSyntax
@@ -17,7 +18,7 @@ class DDLTableSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return string
-     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws Exception
      * @throws \Throwable
      */
     public static function generate(string $tableSchema, string $tableName): string
@@ -30,7 +31,7 @@ class DDLTableSyntax
      * @param string $tableSchema
      * @param string $tableName
      * @return array
-     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws Exception
      * @throws \Throwable
      */
     private static function getTableAttribute(string $tableSchema, string $tableName): array

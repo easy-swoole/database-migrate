@@ -62,9 +62,6 @@ final class CreateCommand extends CommandAbstract
 
         $migrateFilePath = $config->getMigratePath() . $migrateFileName;
 
-        // if (!File::createDirectory($migratePath)) {
-        //     throw new \Exception(sprintf('Failed to create directory "%s", please check permissions', $migratePath));
-        // }
 
         if (!File::touchFile($migrateFilePath, false)) {
             throw new Exception(sprintf('Migration file "%s" creation failed, file already exists or directory is not writable', $migrateFilePath));
