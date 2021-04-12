@@ -40,7 +40,7 @@ class Config extends MysqliConfig
 
 
     /** @var string seeder path */
-    protected $seeder_path = EASYSWOOLE_ROOT . '/Database/Seeds/';
+    protected $seeder_path;
 
     /** @var string seeder template class name */
     protected $seeder_template_class_name = 'SeederClassName';
@@ -55,6 +55,15 @@ class Config extends MysqliConfig
     /** @var string migrate template class name */
     protected $migrate_template_ddl_syntax = 'DDLSyntax';
 
+    protected function initialize(): void
+    {
+        if (empty($this->migrate_path)) {
+            $this->migrate_path = getcwd() . '/Database/Migrates/';
+        }
+        if (empty($this->seeder_path)) {
+            $this->seeder_path = getcwd() . '/Database/Seeds/';
+        }
+    }
 
     /**
      * @return string
@@ -262,12 +271,5 @@ class Config extends MysqliConfig
     public function setMigrateTemplateDdlSyntax(string $migrate_template_ddl_syntax): void
     {
         $this->migrate_template_ddl_syntax = $migrate_template_ddl_syntax;
-    }
-
-    protected function initialize(): void
-    {
-        if(empty($this->migrate_path)){
-            $this->migrate_path =  getcwd() . '/Database/Migrates/';
-        }
     }
 }

@@ -55,6 +55,10 @@ $config->setMigrateTemplateDdlSyntax("DDLSyntax");
 \EasySwoole\DatabaseMigrate\MigrateManager::getInstance($config);
 ```
 
+:::tip
+如果不自定义`setMigratePath`、`setSeederPath`配置项，所有迁移命令必须在项目根目录(固定目录)下执行
+:::
+
 执行 `php easyswoole migrate -h`
 
 ```text
