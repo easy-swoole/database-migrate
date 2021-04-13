@@ -3,15 +3,10 @@
 namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
-use EasySwoole\Command\AbstractInterface\CommandInterface;
-use EasySwoole\Command\AbstractInterface\ResultInterface;
 use EasySwoole\Command\Color;
-use EasySwoole\Command\CommandManager;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\MigrateCommand;
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
-use Exception;
 use Throwable;
 
 /**

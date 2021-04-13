@@ -3,18 +3,10 @@
 namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
-use EasySwoole\Command\AbstractInterface\CommandInterface;
 use EasySwoole\Command\Color;
-use EasySwoole\DDL\Blueprint\Create\Table as CreateTable;
-use EasySwoole\DDL\DDLBuilder;
-use EasySwoole\DDL\Enum\Character;
-use EasySwoole\DDL\Enum\Engine;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\MigrateCommand;
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\Utility\Util;
-use EasySwoole\Spl\SplArray;
-use RuntimeException;
 
 /**
  * Class RunCommand

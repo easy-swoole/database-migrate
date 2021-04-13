@@ -3,7 +3,6 @@
 namespace EasySwoole\DatabaseMigrate\DDLSyntax;
 
 use EasySwoole\DatabaseMigrate\MigrateManager;
-use EasySwoole\DDL\Blueprint\Create\Table;
 use EasySwoole\DatabaseMigrate\Utility\Util;
 use EasySwoole\Mysqli\Exception\Exception;
 

@@ -3,15 +3,8 @@
 namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
-use EasySwoole\Command\AbstractInterface\ResultInterface;
-use EasySwoole\Command\Color;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
 use EasySwoole\DatabaseMigrate\MigrateManager;
-use EasySwoole\DatabaseMigrate\Utility\Util;
-use EasySwoole\DatabaseMigrate\Validate\Validator;
-use EasySwoole\Utility\File;
-use Exception;
-use InvalidArgumentException;
 
 /**
  * Class StatusCommand

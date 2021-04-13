@@ -3,10 +3,8 @@
 namespace EasySwoole\DatabaseMigrate\Command;
 
 use EasySwoole\Command\AbstractInterface\CommandHelpInterface;
-use EasySwoole\Command\AbstractInterface\CommandInterface;
 use EasySwoole\Command\Color;
 use EasySwoole\DatabaseMigrate\Command\AbstractInterface\CommandAbstract;
-use EasySwoole\DatabaseMigrate\MigrateCommand;
 use EasySwoole\DatabaseMigrate\MigrateManager;
 use EasySwoole\DatabaseMigrate\DDLSyntax\DDLColumnSyntax;
 use EasySwoole\DatabaseMigrate\DDLSyntax\DDLForeignSyntax;
