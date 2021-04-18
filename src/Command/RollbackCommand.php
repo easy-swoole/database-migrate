@@ -52,8 +52,7 @@ final class RollbackCommand extends CommandAbstract
                 $ref = new \ReflectionClass($className);
                 $sql = call_user_func([$ref->newInstance(), 'down']);
                 if ($sql && MigrateManager::getInstance()->query($sql)) {
-                    $deleteSql = "DELETE FROM `" . $config->getMigrateTable() . "` WHERE `id`='{$id}' ";
-                    MigrateManager::getInstance()->query($deleteSql);
+                    MigrateManager::getInstance()->delete($config->getMigrateTable(), ["id" => $id]);
                 }
             } catch (\Throwable $e) {
                 return Color::error($e->getMessage());

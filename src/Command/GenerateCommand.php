@@ -127,8 +127,12 @@ final class GenerateCommand extends CommandAbstract
         if (file_put_contents($migrateFilePath, $contents) === false) {
             throw new Exception(sprintf('Migration file "%s" is not writable', $migrateFilePath));
         }
-        $noteSql = 'INSERT INTO ' . $config->getMigrateTable() . ' (`migration`,`batch`) VALUE (\'' . $fileName . '\',\'' . $batchNo . '\')';
-        MigrateManager::getInstance()->query($noteSql);
+        MigrateManager::getInstance()->insert($config->getMigrateTable(),
+            [
+                "migration" => $fileName,
+                "batch" => $batchNo
+            ]
+        );
         $outMsg[] = "<green>Generated:  </green>{$fileName} (" . round(microtime(true) - $startTime, 2) . " seconds)";
     }
 
