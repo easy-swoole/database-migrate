@@ -53,8 +53,12 @@ final class RunCommand extends CommandAbstract
                 $ref = new \ReflectionClass($className);
                 $sql = call_user_func([$ref->newInstance(), 'up']);
                 if ($sql && MigrateManager::getInstance()->query($sql)) {
-                    $noteSql = 'INSERT INTO ' . $config->getMigrateTable() . ' (`migration`,`batch`) VALUE (\'' . $file . '\',\'' . $batchNo . '\')';
-                    MigrateManager::getInstance()->query($noteSql);
+                    MigrateManager::getInstance()->insert($config->getMigrateTable(),
+                        [
+                            "migration" => $file,
+                            "batch" => $batchNo
+                        ]
+                    );
                 }
             } catch (\Throwable $e) {
                 return Color::error($e->getMessage());

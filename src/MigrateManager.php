@@ -57,4 +57,41 @@ class MigrateManager
         $client->queryBuilder()->raw($sql);
         return $client->execBuilder();
     }
+
+    /**
+     * @param string $tableName
+     * @param array $insertData
+     * @return array|bool|null
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
+     * @author heelie.hj@gmail.com
+     * @date 2021-04-18 21:05:12
+     */
+    public function insert(string $tableName, array $insertData)
+    {
+        $client = $this->getClient();
+        $client->queryBuilder()->insert($tableName, $insertData);
+        return $client->execBuilder();
+    }
+
+    /**
+     * @param string $tableName
+     * @param array $whereData
+     * @param int|null $limit
+     * @return array|bool|null
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
+     * @author heelie.hj@gmail.com
+     * @date 2021-04-18 21:05:12
+     */
+    public function delete(string $tableName, array $whereData = [], ?int $limit = null)
+    {
+        $client = $this->getClient();
+        $builder = $client->queryBuilder();
+        foreach ($whereData as $key => $value) {
+            $builder->where($key, $value);
+        }
+        $builder->delete($tableName, $limit);
+        return $client->execBuilder();
+    }
 }
