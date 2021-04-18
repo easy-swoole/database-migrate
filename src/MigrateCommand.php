@@ -97,13 +97,8 @@ class MigrateCommand extends CommandAbstract
     public function exec(): ?string
     {
         $closure = function () use (&$result) {
-            try {
-                $this->checkDefaultMigrateTable();
-                $result = $this->callOptionMethod($this->getArg(0), "exec");
-            } catch (Throwable $throwable) {
-                $result = Color::error($throwable->getMessage()) . "\n" .
-                    CommandManager::getInstance()->displayCommandHelp('migrate');
-            }
+            $this->checkDefaultMigrateTable();
+            $result = $this->callOptionMethod($this->getArg(0), "exec");
         };
         if (Coroutine::getCid() == -1) {
             Timer::clearAll();

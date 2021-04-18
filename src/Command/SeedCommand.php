@@ -43,17 +43,13 @@ final class SeedCommand extends CommandAbstract
      */
     public function exec(): ?string
     {
-        try {
-            if ($createClass = $this->getOpt(['cr', 'create'])) {
-                return $this->create($createClass);
-            }
-            if ($class = $this->getOpt(['cs', 'class'])) {
-                return $this->seederRun(explode(',', $class));
-            }
-            return $this->seederRun(Util::getAllSeederFiles());
-        } catch (Throwable $throwable) {
-            return Color::error($throwable->getMessage());
+        if ($createClass = $this->getOpt(['cr', 'create'])) {
+            return $this->create($createClass);
         }
+        if ($class = $this->getOpt(['cs', 'class'])) {
+            return $this->seederRun(explode(',', $class));
+        }
+        return $this->seederRun(Util::getAllSeederFiles());
     }
 
     private function create($className)
