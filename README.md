@@ -2,6 +2,12 @@
 
 参照Laravel开发的easyswoole数据库版本迁移工具
 
+## 安装
+
+```
+composer require easyswoole/db-migrate
+```
+
 ## 使用方法
 
 在全局 `boostrap` 事件中注册 `MigrateCommand` 并添加配置信息
