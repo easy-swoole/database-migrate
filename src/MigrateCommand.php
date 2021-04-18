@@ -123,6 +123,10 @@ class MigrateCommand extends CommandAbstract
      */
     private function callOptionMethod($option, $method, $args = [])
     {
+        if (!$option) {
+            return CommandManager::getInstance()->displayCommandHelp('migrate');
+        }
+        
         if (!isset($this->command[$option])) {
             throw new InvalidArgumentException('Migration command error');
         }
