@@ -18,7 +18,7 @@ class MigrateCommandTest extends TestCase
     public function setUp(): void
     {
         $config = new Config();
-        $config->setHost("mysql5");
+        $config->setHost("mysql");
         $config->setPort(3306);
         $config->setUser("root");
         $config->setPassword("123456");
@@ -81,7 +81,7 @@ class MigrateCommandTest extends TestCase
                   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
                   `name` varchar(255) DEFAULT NULL,
                   PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
                 MigrateManager::getInstance()->query($createSql);
             }
         };
