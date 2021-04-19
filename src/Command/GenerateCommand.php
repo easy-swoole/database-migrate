@@ -43,35 +43,33 @@ final class GenerateCommand extends CommandAbstract
 
     /**
      * @return string|null
+     * @throws Throwable
+     * @throws \EasySwoole\Mysqli\Exception\Exception
      */
     public function exec(): ?string
     {
-        try {
-            // need to migrate
-            $migrateTables = $this->getExistsTables();
-            if ($specifiedTables = $this->getOpt(['t', 'table'])) {
-                $specifiedTables = explode(',', $specifiedTables);
-                array_walk($specifiedTables, function ($tableName) use ($migrateTables) {
-                    if (!in_array($tableName, $migrateTables)) {
-                        throw new RuntimeException(sprintf('Table: "%s" not found.', $tableName));
-                    }
-                });
-                $migrateTables = $specifiedTables;
-            }
+        // need to migrate
+        $migrateTables = $this->getExistsTables();
+        if ($specifiedTables = $this->getOpt(['t', 'table'])) {
+            $specifiedTables = explode(',', $specifiedTables);
+            array_walk($specifiedTables, function ($tableName) use ($migrateTables) {
+                if (!in_array($tableName, $migrateTables)) {
+                    throw new RuntimeException(sprintf('Table: "%s" not found.', $tableName));
+                }
+            });
+            $migrateTables = $specifiedTables;
+        }
 
-            // ignore table
-            $ignoreTables = $this->getIgnoreTables();
-            $allTables    = array_diff($migrateTables, $ignoreTables);
-            if (empty($allTables)) {
-                throw new RuntimeException('No table found.');
-            }
-            $batchNo = (new RunCommand)->getBatchNo();
-            $outMsg  = [];
-            foreach ($allTables as $tableName) {
-                $this->generate($tableName, $batchNo, $outMsg);
-            }
-        } catch (Throwable $throwable) {
-            return Color::error($throwable->getMessage());
+        // ignore table
+        $ignoreTables = $this->getIgnoreTables();
+        $allTables = array_diff($migrateTables, $ignoreTables);
+        if (empty($allTables)) {
+            throw new RuntimeException('No table found.');
+        }
+        $batchNo = (new RunCommand)->getBatchNo();
+        $outMsg = [];
+        foreach ($allTables as $tableName) {
+            $this->generate($tableName, $batchNo, $outMsg);
         }
         $outMsg[] = '<success>All table migration repository generation completed.</success>';
         return Color::render(join(PHP_EOL, $outMsg));

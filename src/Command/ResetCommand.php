@@ -34,6 +34,7 @@ final class ResetCommand extends CommandAbstract
 
     /**
      * @return string|null
+     * @throws \ReflectionException
      */
     public function exec(): ?string
     {
@@ -47,14 +48,10 @@ final class ResetCommand extends CommandAbstract
             $outMsg[]  = "<brown>Migrating: </brown>{$file}";
             $startTime = microtime(true);
             $className = Util::migrateFileNameToClassName($file);
-            try {
-                $ref = new \ReflectionClass($className);
-                $sql = call_user_func([$ref->newInstance(), 'down']);
-                if ($sql && MigrateManager::getInstance()->query($sql)) {
-                    MigrateManager::getInstance()->delete($config->getMigrateTable(), ["id" => $id]);
-                }
-            } catch (Throwable $e) {
-                return Color::error($e->getMessage());
+            $ref = new \ReflectionClass($className);
+            $sql = call_user_func([$ref->newInstance(), 'down']);
+            if ($sql && MigrateManager::getInstance()->query($sql)) {
+                MigrateManager::getInstance()->delete($config->getMigrateTable(), ["id" => $id]);
             }
             $outMsg[] = "<green>Migrated:  </green>{$file} (" . round(microtime(true) - $startTime, 2) . " seconds)";
         }

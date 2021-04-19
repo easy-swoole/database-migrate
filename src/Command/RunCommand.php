@@ -49,19 +49,15 @@ final class RunCommand extends CommandAbstract
             $outMsg[]  = "<brown>Migrating: </brown>{$file}";
             $startTime = microtime(true);
             $className = Util::migrateFileNameToClassName($file);
-            try {
-                $ref = new \ReflectionClass($className);
-                $sql = call_user_func([$ref->newInstance(), 'up']);
-                if ($sql && MigrateManager::getInstance()->query($sql)) {
-                    MigrateManager::getInstance()->insert($config->getMigrateTable(),
-                        [
-                            "migration" => $file,
-                            "batch" => $batchNo
-                        ]
-                    );
-                }
-            } catch (\Throwable $e) {
-                return Color::error($e->getMessage());
+            $ref = new \ReflectionClass($className);
+            $sql = call_user_func([$ref->newInstance(), 'up']);
+            if ($sql && MigrateManager::getInstance()->query($sql)) {
+                MigrateManager::getInstance()->insert($config->getMigrateTable(),
+                    [
+                        "migration" => $file,
+                        "batch" => $batchNo
+                    ]
+                );
             }
             $outMsg[] = "<green>Migrated:  </green>{$file} (" . round(microtime(true) - $startTime, 2) . " seconds)";
         }
