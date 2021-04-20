@@ -178,7 +178,7 @@ class User
 > 
 > 不加操作项即为执行填充数据操作，添加操作项即为创建填充模板
 > 
-> 生成模板文件之后，方法内的操作使用 [easyswoole/mysqli](https://github.com/easy-swoole/mysqli) 做数据填充，
+> 生成模板文件之后，方法内的操作使用 [easyswoole/mysqli](https://github.com/easy-swoole/mysqli) 做数据填充
 
 可用操作选项：
 
