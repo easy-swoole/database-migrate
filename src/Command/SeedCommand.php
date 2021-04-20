@@ -46,7 +46,7 @@ final class SeedCommand extends CommandAbstract
         if ($createClass = $this->getOpt(['cr', 'create'])) {
             return $this->create($createClass);
         }
-        if ($class = $this->getOpt(['cs', 'class'])) {
+        if ($class = $this->getArg(1)) {
             return $this->seederRun(explode(',', $class));
         }
         return $this->seederRun(Util::getAllSeederFiles());
@@ -97,9 +97,9 @@ final class SeedCommand extends CommandAbstract
             try {
                 $ref = new \ReflectionClass($className);
                 call_user_func([$ref->newInstance(), 'run']);
-                return $outMsg[] = "<green>Seeded: </green>{$filename} (" . round(microtime(true) - $startTime, 2) . " seconds)";
+                return $outMsg[] = "<green>Seeded:  </green>{$filename} (" . round(microtime(true) - $startTime, 2) . " seconds)";
             } catch (\Throwable $e) {
-                return $outMsg[] = "<warning>Seeded: </warning>" . sprintf('seeder file "%s" error: %s', $filename, $e->getMessage());
+                return $outMsg[] = "<warning>Seeded:  </warning>" . sprintf('seeder file "%s" error: %s', $filename, $e->getMessage());
             }
         });
 
