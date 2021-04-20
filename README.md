@@ -77,7 +77,7 @@ Usage:
 Actions:
   create    Create the migration repository
   generate  Generate migration repository for existing tables
-  run       run all migrations
+  run       Run all migrations
   rollback  Rollback the last database migration
   reset     Rollback all database migrations
   seed      Data filling tool
