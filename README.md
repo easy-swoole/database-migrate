@@ -184,9 +184,9 @@ class User
 
 - `--create`：创建一个数据填充模板
   - 示例：`php easyswoole migrate seed --create=UserTable`
-- 不加操作项，直接填写文件名或者类名，即为执行指定填充文件(多个文件用 ',' 隔开)
+- 直接填写文件名或者类名，即为执行指定填充文件(多个文件用 ',' 隔开)
   - 示例：`php easyswoole migrate seed UserTable,UserInfoTable.php`
-- 不加操作项，直接执行seed命令为执行数据填充目录下所有填充操作
+- 直接执行seed命令为执行数据填充目录下所有填充操作
   - 示例：`php easyswoole migrate seed`
 
 ### status
