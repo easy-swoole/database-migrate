@@ -80,6 +80,7 @@ class MigrateCommandTest extends TestCase
                 CREATE TABLE IF NOT EXISTS `{$tableName}` (
                   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
                   `name` varchar(255) DEFAULT NULL,
+                  `info` JSON DEFAULT NULL,
                   PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
                 MigrateManager::getInstance()->query($createSql);
