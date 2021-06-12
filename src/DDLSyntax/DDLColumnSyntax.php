@@ -58,6 +58,10 @@ class DDLColumnSyntax
         DataType::LONGBLOB,
     ];
 
+    private static $json = [
+        DataType::JSON
+    ];
+
     /**
      * @param string $tableSchema
      * @param string $tableName
@@ -124,6 +128,8 @@ class DDLColumnSyntax
         } elseif (in_array($colAttrs['DATA_TYPE'], self::$text)) {
             $ddlSyntax = "\$table->{$colAttrs['DATA_TYPE']}('{$colAttrs['COLUMN_NAME']}')";
         } elseif (in_array($colAttrs['DATA_TYPE'], self::$blob)) {
+            $ddlSyntax = "\$table->{$colAttrs['DATA_TYPE']}('{$colAttrs['COLUMN_NAME']}')";
+        } elseif (in_array($colAttrs['DATA_TYPE'], self::$json)) {
             $ddlSyntax = "\$table->{$colAttrs['DATA_TYPE']}('{$colAttrs['COLUMN_NAME']}')";
         } else {
             return sprintf('// Todo::For some reason the field "%s" is not generated', $colAttrs['COLUMN_NAME']);
